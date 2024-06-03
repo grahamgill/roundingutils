@@ -5,6 +5,8 @@ from math import floor, ceil, trunc, copysign, modf, fmod
 from numbers import Integral, Real, Number, Complex, Rational
 from typing import Callable, Dict
 
+__all__ = ['Rounder', 'RoundingMode']
+
 class RoundingMode(Enum):
   ROUNDDOWN = 'Round toward -infinity'
   ROUNDUP = 'Round toward +infinity'
@@ -18,7 +20,7 @@ class RoundingMode(Enum):
   ROUNDHALFFROMZERO = 'Round to nearest decimal with ties going toward +infinity if positive and toward -infinity if negative'
   ROUND05FROMZERO = 'Round toward zero, unless the rounded number ends in 0 or 5, in which case round toward +infinity if positive and toward -infinity if negative'
 
-def sign(x : Real | Decimal) -> Integral:
+def _sign(x : Real | Decimal) -> Integral:
   return 1 if x > 0 else -1 if x < 0 else 0
 
 def _awayfromzero(x : Real | Decimal) -> Integral:
@@ -41,7 +43,7 @@ def _roundhalfup(x : Real | Decimal) -> Integral:
   return _roundhalffixeddirection(x, ceil)
 
 def _roundhalfodd(x : Real | Decimal) -> Integral:
-  sgn_x = sign(x)
+  sgn_x = _sign(x)
   return round(x + sgn_x) - sgn_x
 
 def _round05fromzero(x : Real | Decimal) -> Integral:
@@ -151,19 +153,14 @@ class Rounder():
     RoundingMode.ROUND05FROMZERO : lambda x: x.to_integral_value(decimal.ROUND_05UP)
   }
 
-  def __init__(self, number_type : Number | type[Number], to_integral : bool = True):
+  def __init__(self, number_type : Number | type[Number], to_integral : bool = True, default_mode : RoundingMode = RoundingMode.ROUNDHALFEVEN):
     if isinstance(number_type, Number):
       number_type = type(number_type)
 
-    self.number_type = number_type
-    self.to_integral = to_integral
-    self.default_unitsize = number_type(1)
-    self.default_mode = RoundingMode.ROUNDHALFEVEN
-
-    self.roundint = self.__call__
-    self._roundunits = lambda x, u = self.default_unitsize, m = self.default_mode: Rounder.roundunits(self, x, u, m)
-    self._roundunits_unitsize_type = lambda x, u = self.default_unitsize, m = self.default_mode: type(u)(Rounder.roundunits(self, x, u, m))
-    self._roundunits_x_type = lambda x, u = self.default_unitsize, m = self.default_mode: type(x)(Rounder.roundunits(self, x, u, m))
+    self._number_type = number_type
+    self._to_integral = to_integral
+    self._default_mode = default_mode
+    self.isinteger = Rounder._isinteger_selector(number_type)
 
     if to_integral:
       if issubclass(number_type, Real | Decimal):
@@ -175,7 +172,8 @@ class Rounder():
       else:
         raise NotImplementedError
       
-      self.roundunits = self._roundunits_unitsize_type
+      self.numunits = lambda x, u, m = self.default_mode: Rounder.numunits(self, x, u, m)
+      self.roundunits = lambda x, u, m = self.default_mode: type(u)(Rounder.roundunits(self, x, u, m))
 
     else:
       if issubclass(number_type, float):
@@ -196,7 +194,8 @@ class Rounder():
       else:
         raise NotImplementedError
       
-      self.roundunits = self._roundunits_x_type
+      self.numunits = lambda x, u, m = self.default_mode: self.number_type(Rounder.numunits(self, x, u, m))
+      self.roundunits = lambda x, u, m = self.default_mode: self.number_type(Rounder.roundunits(self, x, u, m))
       
   def __call__(self, x : Number, mode : RoundingMode = None) -> Number:
     if mode is None:
@@ -204,45 +203,77 @@ class Rounder():
     
     return self.roundingfuncs[mode](x)
   
+  @property
+  def roundint(self):
+    return self.__call__
+  
+  @property
+  def default_mode(self):
+    return self._default_mode
+  
+  @property
+  def number_type(self):
+    return self._number_type
+  
+  @property
+  def to_integral(self):
+    return self._to_integral
+  
+  @property
+  def roundingfuncs(self):
+    return self._roundingfuncs
+  
+  @roundingfuncs.setter
+  def roundingfuncs(self, dict):
+    self._roundingfuncs = dict
+
+  @property
+  def isinteger(self):
+    return self._isinteger
+  
+  @isinteger.setter
+  def isinteger(self, fn):
+    self._isinteger = lambda x: True if isinstance(x, Integral) else fn(x)
+
+  def numunits(self, x : Number, unitsize : Number, mode : RoundingMode) -> Integral:
+    return self.roundingfuncs[mode](x / unitsize)
+
   def roundunits(self, x : Number, unitsize : Number, mode : RoundingMode) -> Number:
     if unitsize == 0:
       return x
 
     return self.roundingfuncs[mode](x / unitsize) * unitsize
   
-  def isunitsized(self, x : Number, unitsize : Number = None) -> bool:
-    if unitsize is None:
-      unitsize = self.default_unitsize
-    
+  def isunitsized(self, x : Number, unitsize : Number) -> bool:
     if unitsize == 0:
       return True
 
-    return isinteger(x / unitsize)
+    return self.isinteger(x / unitsize)
 
+  @staticmethod
+  def _isinteger_selector(t : type[Number]) -> Callable[[Number], bool]:
+    if issubclass(t, Integral):
+      return lambda _: True
+    
+    if issubclass(t, float):
+      return lambda x: x.is_integer()
 
-def isinteger(x : Number) -> bool:
-  if isinstance(x, Integral):
-    return True
-  
-  if isinstance(x, float):
-    return x.is_integer()
+    if issubclass(t, Decimal):
+      return lambda x: x.as_integer_ratio()[1] == 1
+    
+    if issubclass(t, Rational):
+      return lambda x: x.denominator == 1 or x.numerator % x.denominator == 0
+    
+    if issubclass(t, Real):
+      return lambda x: round(x, 0) == x
+    
+    if issubclass(t, complex):
+      return lambda x: x.real.is_integer() and x.imag == 0
 
-  if isinstance(x, Decimal):
-    return x.as_integer_ratio()[1] == 1
-  
-  if isinstance(x, Rational):
-    return x.denominator == 1 or x.numerator % x.denominator == 0
-  
-  if isinstance(x, Real):
-    return round(x, 0) == x
-  
-  if isinstance(x, complex):
-    return x.real.is_integer() and x.imag == 0
-
-  if isinstance(x, Complex):
-    return round(x.real, 0) == x.real and x.imag == 0
-  
-  if isinstance(x, Number):
-    raise NotImplementedError
-  
-  return False
+    if issubclass(t, Complex):
+      return lambda x: round(x.real, 0) == x.real and x.imag == 0
+    
+    if issubclass(t, Number):
+      raise NotImplementedError
+    
+    return False

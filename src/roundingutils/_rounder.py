@@ -5,6 +5,7 @@ from math import floor, ceil, trunc, copysign, modf, fmod
 from numbers import Integral, Real, Number, Complex, Rational
 from typing import Callable, Dict
 
+# all we need for `import *`
 __all__ = ['Rounder', 'RoundingMode']
 
 class RoundingMode(Enum):

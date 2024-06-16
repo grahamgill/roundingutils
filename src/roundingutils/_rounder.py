@@ -1,7 +1,7 @@
 import decimal
 from decimal import Decimal
 from enum import Enum
-from math import floor, ceil, trunc, copysign, modf, fmod
+from math import floor, ceil, trunc, copysign, modf, fmod, fabs
 from numbers import Integral, Real, Number, Complex, Rational
 from typing import Callable, Dict
 
@@ -9,6 +9,12 @@ from typing import Callable, Dict
 __all__ = ['Rounder', 'RoundingMode']
 
 class RoundingMode(Enum):
+  """Collection of rounding modes including some which have no known use cases.
+  
+  See [Rounding on Wikipedia](https://en.wikipedia.org/wiki/Rounding). The method `ROUND05FROMZERO` is documented on that page
+  as [Rounding to Prepare for Shorter Precision (RPSP)](https://en.wikipedia.org/wiki/Rounding#Rounding_to_prepare_for_shorter_precision).
+  
+  """
   ROUNDDOWN = 'Round toward -infinity'
   ROUNDUP = 'Round toward +infinity'
   ROUNDTOZERO = 'Round toward zero'
@@ -22,26 +28,22 @@ class RoundingMode(Enum):
   ROUND05FROMZERO = 'Round toward zero, unless the rounded number ends in 0 or 5, in which case round toward +infinity if positive and toward -infinity if negative'
 
 def _sign(x : Real | Decimal) -> Integral:
-  return 1 if x > 0 else -1 if x < 0 else 0
+  return 0 if x == 0 else 1 if x > 0 else -1 if x < 0 else int(copysign(1, x))
 
 def _awayfromzero(x : Real | Decimal) -> Integral:
-  return ceil(x) if x > 0 else floor(x)
-
-def _roundhalffixeddirection(x : Real | Decimal, direction : Callable[[Number], Number]) -> Integral:
-  two_x = x * 2
-  return direction(x) if two_x == round(two_x, 0) else round(x)
+  return ceil(x) if x >= 0 else floor(x)
 
 def _roundhalftozero(x : Real | Decimal) -> Integral:
-  return _roundhalffixeddirection(x, trunc)
+  return _sign(x) * ceil((2 * abs(x) - 1) / 2)
 
 def _roundhalffromzero(x : Real | Decimal) -> Integral:
-  return _roundhalffixeddirection(x, _awayfromzero)
+  return _sign(x) * floor((2 * abs(x) + 1) / 2)
 
 def _roundhalfdown(x : Real | Decimal) -> Integral:
-  return _roundhalffixeddirection(x, floor)
+  return ceil((2 * x - 1) / 2)
 
 def _roundhalfup(x : Real | Decimal) -> Integral:
-  return _roundhalffixeddirection(x, ceil)
+  return floor((2 * x + 1) / 2)
 
 def _roundhalfodd(x : Real | Decimal) -> Integral:
   sgn_x = _sign(x)
@@ -50,6 +52,9 @@ def _roundhalfodd(x : Real | Decimal) -> Integral:
 def _round05fromzero(x : Real | Decimal) -> Integral:
   tozero_x = trunc(x)
   return tozero_x if tozero_x % 5 else _awayfromzero(x)
+
+def _sign_float(x : float) -> float:
+  return 0.0 if x == 0.0 else copysign(1.0, x)
 
 def _ceil_float(x : float) -> float:
   fpart, ipart = modf(x)
@@ -74,21 +79,17 @@ def _roundhalfodd_float(x : float) -> float:
   sgn_x = copysign(1.0, x)
   return copysign(round(x + sgn_x, 0) - sgn_x, x)
 
-def _roundhalffixeddirection_float(x : float, direction : Callable[[Number], Number]) -> float:
-  two_x = x * 2.0
-  return direction(x) if two_x.is_integer() else round(x, 0)
-
 def _roundhalftozero_float(x : float) -> float:
-  return _roundhalffixeddirection_float(x, _trunc_float)
+  return copysign(1.0, x) * _ceil_float((2.0 * fabs(x) - 1.0) / 2.0)
 
 def _roundhalffromzero_float(x : float) -> float:
-  return _roundhalffixeddirection_float(x, _awayfromzero_float)
+  return copysign(1.0, x) * _floor_float((2.0 * fabs(x) + 1.0) / 2.0)
 
 def _roundhalfdown_float(x : float) -> float:
-  return _roundhalffixeddirection_float(x, _floor_float)
+  return _ceil_float((2.0 * x - 1.0) / 2.0)
 
 def _roundhalfup_float(x : float) -> float:
-  return _roundhalffixeddirection_float(x, _ceil_float)
+  return _floor_float((2.0 * x + 1.0) / 2.0)
 
 def _round05fromzero_float(x : float) -> float:
   fpart, ipart = modf(x)
@@ -278,3 +279,7 @@ class Rounder():
       raise NotImplementedError
     
     return False
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

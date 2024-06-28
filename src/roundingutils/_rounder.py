@@ -11,7 +11,7 @@ __all__ = ['Rounder', 'RoundingMode']
 
 
 class RoundingMode(Enum):
-    """Collection of rounding modes including some which have no known use cases.
+    """Collection of rounding modes.
 
     See [Rounding on Wikipedia](https://en.wikipedia.org/wiki/Rounding). The method `ROUND05FROMZERO` is documented on that page
     as [Rounding to Prepare for Shorter Precision (RPSP)](https://en.wikipedia.org/wiki/Rounding#Rounding_to_prepare_for_shorter_precision).
@@ -31,14 +31,70 @@ class RoundingMode(Enum):
 
 
 def _sign(x: Real | Decimal) -> Integral:
+    """Signum function.
+
+    Returns 0 if input is numerically equal to zero, 1 if input is positive, -1 if input is negative.
+    >>> _sign(Fraction(5,2))
+    1
+    >>> _sign(Decimal('-3.2'))
+    -1
+    >>> _sign(-0.0)
+    0
+
+    Takes signed `NaN` and signed `Inf` also and returns the sign.
+    >>> _sign(float('Inf'))
+    1
+    >>> _sign(float('-NaN'))
+    -1
+
+    Complex valued inputs raise an error.
+    >>> _sign(1+1j)
+    Traceback (most recent call last):
+      ...
+    TypeError: '>' not supported between instances of 'complex' and 'int'
+
+    """
     return 0 if x == 0 else 1 if x > 0 else -1 if x < 0 else int(copysign(1, x))
 
 
 def _awayfromzero(x: Real | Decimal) -> Integral:
+    """Rounding to integer away from zero, toward +infinity if input is positive, and toward -infinity if input is negative.
+    
+    >>> _awayfromzero(1.0000000001)
+    2
+    >>> _awayfromzero(Decimal('-1.0000000000000000000000000000000000000000000000000000000000001'))
+    -2
+    >>> _awayfromzero(Fraction(3,1))
+    3
+    >>> _awayfromzero(0.0)
+    0
+    >>> _awayfromzero(float('NaN'))
+    Traceback (most recent call last):
+      ...
+    ValueError: cannot convert float NaN to integer
+
+    """
     return ceil(x) if x >= 0 else floor(x)
 
 
 def _roundhalftozero(x: Real | Decimal) -> Integral:
+    """Round to nearest integer, with exactly half going toward zero.
+    
+    >>> _roundhalftozero(Fraction(3,2))
+    1
+    >>> _roundhalftozero(Decimal('-1.5'))
+    -1
+    >>> _roundhalftozero(0.6)
+    1
+    >>> _roundhalftozero(-0.4)
+    0
+
+    >>> _roundhalftozero(float('-Inf'))
+    Traceback (most recent call last):
+      ...
+    OverflowError: cannot convert float infinity to integer
+  
+    """
     return _sign(x) * ceil((2 * abs(x) - 1) / 2)
 
 
@@ -303,4 +359,5 @@ class Rounder():
 
 if __name__ == "__main__":
     import doctest
+    from fractions import Fraction
     doctest.testmod()

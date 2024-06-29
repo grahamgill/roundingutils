@@ -67,7 +67,8 @@ def _sign(x: Real | Decimal) -> Integral:
 
     """
     # in general this is faster than `return 0 if x == 0 else int(copysign(1.0, x))` but 
-    # this doesn't work for `Decimal('NaN')` which doesn't allow comparisons `>`, `<`
+    # this doesn't work in the default context of `Decimal('NaN')` which traps comparisons `>`, `<`
+    # as invalid operations:
     # return 0 if x == 0 else 1 if x > 0 else -1 if x < 0 else int(copysign(1.0, x))
 
     # this is a compromise between the two
@@ -79,19 +80,34 @@ def _awayfromzero(x: Real | Decimal) -> Integral:
     
     >>> _awayfromzero(1.0000000001)
     2
-    >>> _awayfromzero(Decimal('-1.0000000000000000000000000000000000000000000000000000000000001'))
+    >>> with decimal.localcontext(prec = 100):
+    ...     _awayfromzero(Decimal('-1.0000000000000000000000000000000000000000000000000000000000001'))
     -2
     >>> _awayfromzero(Fraction(3,1))
     3
     >>> _awayfromzero(0.0)
     0
+    >>> _awayfromzero(float('Inf'))
+    Traceback (most recent call last):
+      ...
+    OverflowError: cannot convert float infinity to integer
     >>> _awayfromzero(float('NaN'))
     Traceback (most recent call last):
       ...
     ValueError: cannot convert float NaN to integer
-
+    >>> _awayfromzero(Decimal('Inf'))
+    Traceback (most recent call last):
+      ...
+    OverflowError: cannot convert Infinity to integer
+    >>> _awayfromzero(Decimal('NaN'))
+    Traceback (most recent call last):
+      ...
+    ValueError: cannot convert NaN to integer
     """
-    return ceil(x) if x >= 0 else floor(x)
+    # `Decimal('NaN')` in default context doesn't allow comparison `>=`, which means that using
+    # `ceil(x) if x >= 0 else floor(x)` needs to be protected with
+    # e.g. `ceil(x) if isnan(x) or x >= 0 else floor(x)`
+    return _sign(x) * ceil(abs(x))
 
 
 def _roundhalftozero(x: Real | Decimal) -> Integral:
@@ -110,7 +126,18 @@ def _roundhalftozero(x: Real | Decimal) -> Integral:
     Traceback (most recent call last):
       ...
     OverflowError: cannot convert float infinity to integer
-  
+    >>> _roundhalftozero(float('-NaN'))
+    Traceback (most recent call last):
+      ...
+    ValueError: cannot convert float NaN to integer
+    >>> _roundhalftozero(Decimal('-Inf'))
+    Traceback (most recent call last):
+      ...
+    OverflowError: cannot convert Infinity to integer
+    >>> _roundhalftozero(Decimal('-NaN'))
+    Traceback (most recent call last):
+      ...
+    ValueError: cannot convert NaN to integer
     """
     return _sign(x) * ceil((2 * abs(x) - 1) / 2)
 
@@ -127,10 +154,22 @@ def _roundhalffromzero(x: Real | Decimal) -> Integral:
     >>> _roundhalffromzero(-0.4)
     0
 
-    >>> _roundhalffromzero(float('Inf'))
+    >>> _roundhalffromzero(float('-Inf'))
     Traceback (most recent call last):
       ...
     OverflowError: cannot convert float infinity to integer
+    >>> _roundhalffromzero(float('-NaN'))
+    Traceback (most recent call last):
+      ...
+    ValueError: cannot convert float NaN to integer
+    >>> _roundhalffromzero(Decimal('-Inf'))
+    Traceback (most recent call last):
+      ...
+    OverflowError: cannot convert Infinity to integer
+    >>> _roundhalffromzero(Decimal('-NaN'))
+    Traceback (most recent call last):
+      ...
+    ValueError: cannot convert NaN to integer
     """
     return _sign(x) * floor((2 * abs(x) + 1) / 2)
 

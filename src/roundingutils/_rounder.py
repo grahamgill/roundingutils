@@ -99,18 +99,82 @@ def _roundhalftozero(x: Real | Decimal) -> Integral:
 
 
 def _roundhalffromzero(x: Real | Decimal) -> Integral:
+    """Round `x` to nearest integer, with exactly half going toward +infinity if `x > 0` and going toward -infinity if `x < 0`.
+    
+    >>> _roundhalffromzero(Fraction(3,2))
+    2
+    >>> _roundhalffromzero(Decimal('-1.5'))
+    -2
+    >>> _roundhalffromzero(0.6)
+    1
+    >>> _roundhalffromzero(-0.4)
+    0
+
+    >>> _roundhalffromzero(float('Inf'))
+    Traceback (most recent call last):
+      ...
+    OverflowError: cannot convert float infinity to integer
+    """
     return _sign(x) * floor((2 * abs(x) + 1) / 2)
 
 
 def _roundhalfdown(x: Real | Decimal) -> Integral:
+    """Round `x` to nearest integer, with exactly half going toward -infinity.
+    
+    >>> _roundhalfdown(Fraction(3,2))
+    1
+    >>> _roundhalfdown(Decimal('-1.5'))
+    -2
+    >>> _roundhalfdown(0.6)
+    1
+    >>> _roundhalfdown(-0.4)
+    0
+
+    >>> _roundhalfdown(float('NaN'))
+    Traceback (most recent call last):
+      ...
+    ValueError: cannot convert float NaN to integer
+    """
     return ceil((2 * x - 1) / 2)
 
 
 def _roundhalfup(x: Real | Decimal) -> Integral:
+    """Round `x` to nearest integer, with exactly half going toward +infinity.
+    
+    >>> _roundhalfup(Fraction(3,2))
+    2
+    >>> _roundhalfup(Decimal('-1.5'))
+    -1
+    >>> _roundhalfup(0.6)
+    1
+    >>> _roundhalfup(-0.4)
+    0
+
+    >>> _roundhalfup(float('-NaN'))
+    Traceback (most recent call last):
+      ...
+    ValueError: cannot convert float NaN to integer
+    """
     return floor((2 * x + 1) / 2)
 
 
 def _roundhalfodd(x: Real | Decimal) -> Integral:
+    """Round `x` to nearest integer, with exactly half going toward the nearest odd integer.
+    
+    >>> _roundhalfodd(Fraction(3,2))
+    1
+    >>> _roundhalfodd(Decimal('-1.5'))
+    -1
+    >>> _roundhalfodd(0.6)
+    1
+    >>> _roundhalfodd(-0.4)
+    0
+
+    >>> _roundhalfodd(Decimal('NaN'))
+    Traceback (most recent call last):
+      ...
+    decimal.InvalidOperation: [<class 'decimal.InvalidOperation'>]
+    """
     sgn_x = _sign(x)
     return round(x + sgn_x) - sgn_x
 

@@ -205,21 +205,125 @@ def _round05fromzero(x: Real | Decimal) -> Integral:
 
 
 def _ceil_float(x: float) -> float:
+    """As `ceil` but takes and returns `float`.
+    Float signs, Inf and NaN are all preserved.
+    
+    >>> _ceil_float(-3.2)
+    -3.0
+    >>> _ceil_float(5.6)
+    6.0
+    >>> _ceil_float(-1.0)
+    -1.0
+    >>> _ceil_float(1.0)
+    1.0
+    >>> _ceil_float(-0.5) == -0.0 and copysign(1.0, _ceil_float(-0.5)) == -1.0
+    True
+    >>> _ceil_float(0.0) == 0.0 and copysign(1.0, _ceil_float(0.0)) == 1.0
+    True
+    >>> _ceil_float(-0.0) == -0.0 and copysign(1.0, _ceil_float(-0.0)) == -1.0
+    True
+    >>> _ceil_float(float('Inf')) == float('Inf') and copysign(1.0, _ceil_float(float('Inf'))) == 1.0
+    True
+    >>> _ceil_float(float('-Inf')) == float('-Inf') and copysign(1.0, _ceil_float(float('-Inf'))) == -1.0
+    True
+    >>> isnan(_ceil_float(float('NaN'))) and copysign(1.0, _ceil_float(float('NaN'))) == 1.0
+    True
+    >>> isnan(_ceil_float(float('-NaN'))) and copysign(1.0, _ceil_float(float('-NaN'))) == -1.0
+    True
+    """
     fpart, ipart = modf(x)
-    return ipart if fpart <= 0.0 else ipart + 1.0
+    return ipart if copysign(1.0, fpart) == -1.0 or fpart == 0.0 else ipart + 1.0
 
 
 def _floor_float(x: float) -> float:
+    """As `floor` but takes and returns `float`.
+    Float signs, Inf and NaN are all preserved.
+    
+    >>> _floor_float(-3.2)
+    -4.0
+    >>> _floor_float(5.6)
+    5.0
+    >>> _floor_float(-1.0)
+    -1.0
+    >>> _floor_float(1.0)
+    1.0
+    >>> _floor_float(0.5) == 0.0 and copysign(1.0, _floor_float(0.5)) == 1.0
+    True
+    >>> _floor_float(0.0) == 0.0 and copysign(1.0, _floor_float(0.0)) == 1.0
+    True
+    >>> _floor_float(-0.0) == -0.0 and copysign(1.0, _floor_float(-0.0)) == -1.0
+    True
+    >>> _floor_float(float('Inf')) == float('Inf') and copysign(1.0, _floor_float(float('Inf'))) == 1.0
+    True
+    >>> _floor_float(float('-Inf')) == float('-Inf') and copysign(1.0, _floor_float(float('-Inf'))) == -1.0
+    True
+    >>> isnan(_floor_float(float('NaN'))) and copysign(1.0, _floor_float(float('NaN'))) == 1.0
+    True
+    >>> isnan(_floor_float(float('-NaN'))) and copysign(1.0, _floor_float(float('-NaN'))) == -1.0
+    True
+    """
     fpart, ipart = modf(x)
-    return ipart if fpart >= 0.0 else ipart - 1.0
+    return ipart if copysign(1.0, fpart) == 1.0 or fpart == 0.0 else ipart - 1.0
 
 
 def _trunc_float(x: float) -> float:
+    """As `trunc` but takes and returns `float`.
+    Float signs, Inf and NaN are all preserved.
+    
+    >>> _trunc_float(-3.2)
+    -3.0
+    >>> _trunc_float(5.6)
+    5.0
+    >>> _trunc_float(-1.0)
+    -1.0
+    >>> _trunc_float(1.0)
+    1.0
+    >>> _trunc_float(-0.5) == -0.0 and copysign(1.0, _trunc_float(-0.5)) == -1.0
+    True
+    >>> _trunc_float(0.5) == 0.0 and copysign(1.0, _trunc_float(0.5)) == 1.0
+    True
+    >>> _trunc_float(0.0) == 0.0 and copysign(1.0, _trunc_float(0.0)) == 1.0
+    True
+    >>> _trunc_float(-0.0) == -0.0 and copysign(1.0, _trunc_float(-0.0)) == -1.0
+    True
+    >>> _trunc_float(float('Inf')) == float('Inf') and copysign(1.0, _trunc_float(float('Inf'))) == 1.0
+    True
+    >>> _trunc_float(float('-Inf')) == float('-Inf') and copysign(1.0, _trunc_float(float('-Inf'))) == -1.0
+    True
+    >>> isnan(_trunc_float(float('NaN'))) and copysign(1.0, _trunc_float(float('NaN'))) == 1.0
+    True
+    >>> isnan(_trunc_float(float('-NaN'))) and copysign(1.0, _trunc_float(float('-NaN'))) == -1.0
+    True
+    """
     _, ipart = modf(x)
     return ipart
 
 
 def _awayfromzero_float(x: float) -> float:
+    """As `_awayfromzero` but takes and returns `float`.
+    Float signs, Inf and NaN are all preserved.
+    
+    >>> _awayfromzero_float(-3.2)
+    -4.0
+    >>> _awayfromzero_float(5.6)
+    6.0
+    >>> _awayfromzero_float(-1.0)
+    -1.0
+    >>> _awayfromzero_float(1.0)
+    1.0
+    >>> _awayfromzero_float(0.0) == 0.0 and copysign(1.0, _awayfromzero_float(0.0)) == 1.0
+    True
+    >>> _awayfromzero_float(-0.0) == -0.0 and copysign(1.0, _awayfromzero_float(-0.0)) == -1.0
+    True
+    >>> _awayfromzero_float(float('Inf')) == float('Inf') and copysign(1.0, _awayfromzero_float(float('Inf'))) == 1.0
+    True
+    >>> _awayfromzero_float(float('-Inf')) == float('-Inf') and copysign(1.0, _awayfromzero_float(float('-Inf'))) == -1.0
+    True
+    >>> isnan(_awayfromzero_float(float('NaN'))) and copysign(1.0, _awayfromzero_float(float('NaN'))) == 1.0
+    True
+    >>> isnan(_awayfromzero_float(float('-NaN'))) and copysign(1.0, _awayfromzero_float(float('-NaN'))) == -1.0
+    True
+    """
     fpart, ipart = modf(x)
     return ipart if fpart == 0.0 else ipart + copysign(1.0, fpart)
 
@@ -444,4 +548,5 @@ class Rounder():
 if __name__ == "__main__":
     import doctest
     from fractions import Fraction
+    from math import isnan
     doctest.testmod()

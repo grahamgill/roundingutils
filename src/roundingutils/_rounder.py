@@ -2,7 +2,7 @@ from collections import defaultdict
 import decimal
 from decimal import Decimal
 from enum import Enum
-from math import floor, ceil, trunc, copysign, modf, fmod, fabs, isfinite
+from math import floor, ceil, trunc, copysign, modf, fmod, fabs, isfinite, isnan
 from numbers import Integral, Real, Number, Complex, Rational
 from typing import Callable, Dict
 
@@ -44,17 +44,34 @@ def _sign(x: Real | Decimal) -> Integral:
     Takes signed `NaN` and signed `Inf` also and returns the sign.
     >>> _sign(float('Inf'))
     1
+    >>> _sign(float('-Inf'))
+    -1
+    >>> _sign(float('NaN'))
+    1
     >>> _sign(float('-NaN'))
+    -1
+    >>> _sign(Decimal('Inf'))
+    1
+    >>> _sign(Decimal('-Inf'))
+    -1
+    >>> _sign(Decimal('NaN'))
+    1
+    >>> _sign(Decimal('-NaN'))
     -1
 
     Complex valued inputs raise an error.
     >>> _sign(1+1j)
     Traceback (most recent call last):
       ...
-    TypeError: '>' not supported between instances of 'complex' and 'int'
+    TypeError: must be real number, not complex
 
     """
-    return 0 if x == 0 else 1 if x > 0 else -1 if x < 0 else int(copysign(1, x))
+    # in general this is faster than `return 0 if x == 0 else int(copysign(1.0, x))` but 
+    # this doesn't work for `Decimal('NaN')` which doesn't allow comparisons `>`, `<`
+    # return 0 if x == 0 else 1 if x > 0 else -1 if x < 0 else int(copysign(1.0, x))
+
+    # this is a compromise between the two
+    return int(copysign(1.0, x)) if isnan(x) else 1 if x > 0 else -1 if x < 0 else 0
 
 
 def _awayfromzero(x: Real | Decimal) -> Integral:
@@ -173,7 +190,7 @@ def _roundhalfodd(x: Real | Decimal) -> Integral:
     >>> _roundhalfodd(Decimal('NaN'))
     Traceback (most recent call last):
       ...
-    decimal.InvalidOperation: [<class 'decimal.InvalidOperation'>]
+    ValueError: cannot convert NaN to integer
     """
     sgn_x = _sign(x)
     return round(x + sgn_x) - sgn_x
@@ -548,5 +565,4 @@ class Rounder():
 if __name__ == "__main__":
     import doctest
     from fractions import Fraction
-    from math import isnan
     doctest.testmod()

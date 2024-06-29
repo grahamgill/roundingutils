@@ -180,6 +180,26 @@ def _roundhalfodd(x: Real | Decimal) -> Integral:
 
 
 def _round05fromzero(x: Real | Decimal) -> Integral:
+    """Round `x` toward zero, unless the integer produced ends in zero or five (i.e. is a multiple of 5), in which case round away from zero instead.
+    
+    >>> _round05fromzero(5.0000000000001)
+    6
+    >>> _round05fromzero(4.9999999999999)
+    4
+    >>> _round05fromzero(5.0)
+    5
+    >>> _round05fromzero(Decimal(-9.9999999999999))
+    -9
+    >>> _round05fromzero(Decimal(-10.0000000000001))
+    -11
+    >>> _round05fromzero(Fraction(-10,1))
+    -10
+
+    >>> _round05fromzero(Decimal('-Inf'))
+    Traceback (most recent call last):
+      ...
+    OverflowError: cannot convert Infinity to integer
+    """
     tozero_x = trunc(x)
     return tozero_x if tozero_x % 5 else _awayfromzero(x)
 

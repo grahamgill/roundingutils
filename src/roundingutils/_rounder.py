@@ -485,6 +485,26 @@ def _round05fromzero_float(x: float) -> float:
 
 
 def _roundhalfodd_decimal(x: Decimal) -> Decimal:
+    """Like `round(x, 0)`, but rounds half to the nearest odd integer instead of even integer, taking and returning `Decimal`.
+    Decimal signs, Inf and NaN are all preserved.
+    
+    >>> _roundhalfodd_decimal(Decimal('-3.2'))
+    Decimal('-3')
+    >>> _roundhalfodd_decimal(Decimal('5.6'))
+    Decimal('6')
+    >>> _roundhalfodd_decimal(Decimal('-3.5'))
+    Decimal('-3')
+    >>> _roundhalfodd_decimal(Decimal('5.5'))
+    Decimal('5')
+    >>> _roundhalfodd_decimal(Decimal('-4.5'))
+    Decimal('-5')
+    >>> _roundhalfodd_decimal(Decimal('6.5'))
+    Decimal('7')
+    >>> _roundhalfodd_decimal(Decimal('-1.0'))
+    Decimal('-1')
+    >>> _roundhalfodd_decimal(Decimal('1.0'))
+    Decimal('1')
+    """
     sgn_x = Decimal(1).copy_sign(x)
     return ((x + sgn_x).to_integral_value(decimal.ROUND_HALF_EVEN) - sgn_x).copy_sign(x)
 

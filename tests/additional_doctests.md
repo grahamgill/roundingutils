@@ -5,7 +5,8 @@ Additional doctests for `../src/roundingutils/_rounder.py` that are not illustra
     >>> from _rounder import \
     ...   _sign, _awayfromzero, _roundhalftozero, _roundhalffromzero, _roundhalfdown, _roundhalfup, _roundhalfodd, \
     ...   _round05fromzero, _ceil_float, _floor_float, _trunc_float, _awayfromzero_float, _roundhalfeven_float, _roundhalfodd_float, \
-    ...   _roundhalftozero_float, _roundhalffromzero_float, _roundhalfdown_float, _roundhalfup_float, _round05fromzero_float
+    ...   _roundhalftozero_float, _roundhalffromzero_float, _roundhalfdown_float, _roundhalfup_float, _round05fromzero_float, \
+    ...   _roundhalfodd_decimal
     >>> _sign(float('Inf'))
     1
     >>> _sign(float('-Inf'))
@@ -271,4 +272,16 @@ Additional doctests for `../src/roundingutils/_rounder.py` that are not illustra
     >>> isnan(_round05fromzero_float(float('NaN'))) and copysign(1.0, _round05fromzero_float(float('NaN'))) == 1.0
     True
     >>> isnan(_round05fromzero_float(float('-NaN'))) and copysign(1.0, _round05fromzero_float(float('-NaN'))) == -1.0
+    True
+    >>> _roundhalfodd_decimal(Decimal('0')) == Decimal('0') and copysign(Decimal('1'), _roundhalfodd_decimal(Decimal('0'))) == Decimal('1')
+    True
+    >>> _roundhalfodd_decimal(Decimal('-0')) == Decimal('-0') and copysign(Decimal('1'), _roundhalfodd_decimal(Decimal('-0'))) == Decimal('-1')
+    True
+    >>> _roundhalfodd_decimal(Decimal('Inf')) == Decimal('Inf') and copysign(Decimal('1'), _roundhalfodd_decimal(Decimal('Inf'))) == Decimal('1')
+    True
+    >>> _roundhalfodd_decimal(Decimal('-Inf')) == Decimal('-Inf') and copysign(Decimal('1'), _roundhalfodd_decimal(Decimal('-Inf'))) == Decimal('-1')
+    True
+    >>> isnan(_roundhalfodd_decimal(Decimal('NaN'))) and copysign(Decimal('1'), _roundhalfodd_decimal(Decimal('NaN'))) == Decimal('1')
+    True
+    >>> isnan(_roundhalfodd_decimal(Decimal('-NaN'))) and copysign(Decimal('1'), _roundhalfodd_decimal(Decimal('-NaN'))) == Decimal('-1')
     True

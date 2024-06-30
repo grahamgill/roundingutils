@@ -42,29 +42,8 @@ def _sign(x: Real | Decimal) -> Integral:
     0
 
     Takes signed `NaN` and signed `Inf` also and returns the sign.
-    >>> _sign(float('Inf'))
-    1
-    >>> _sign(float('-Inf'))
-    -1
-    >>> _sign(float('NaN'))
-    1
-    >>> _sign(float('-NaN'))
-    -1
-    >>> _sign(Decimal('Inf'))
-    1
-    >>> _sign(Decimal('-Inf'))
-    -1
-    >>> _sign(Decimal('NaN'))
-    1
-    >>> _sign(Decimal('-NaN'))
-    -1
 
     Complex valued inputs raise an error.
-    >>> _sign(1+1j)
-    Traceback (most recent call last):
-      ...
-    TypeError: must be real number, not complex
-
     """
     # in general this is faster than `return 0 if x == 0 else int(copysign(1.0, x))` but 
     # this doesn't work in the default context of `Decimal('NaN')` which traps comparisons `>`, `<`
@@ -97,23 +76,7 @@ def _awayfromzero(x: Real | Decimal) -> Integral:
     >>> _awayfromzero(Decimal('-1.0000000000000000000000000000000000000000000000000000000000001'))
     -1
 
-    Inf and NaN exceptions. These are also subject to `decimal` context.
-    >>> _awayfromzero(float('Inf'))
-    Traceback (most recent call last):
-      ...
-    OverflowError: cannot convert float infinity to integer
-    >>> _awayfromzero(float('NaN'))
-    Traceback (most recent call last):
-      ...
-    ValueError: cannot convert float NaN to integer
-    >>> _awayfromzero(Decimal('Inf'))
-    Traceback (most recent call last):
-      ...
-    OverflowError: cannot convert Infinity to integer
-    >>> _awayfromzero(Decimal('NaN'))
-    Traceback (most recent call last):
-      ...
-    ValueError: cannot convert NaN to integer
+    Inf and NaN exceptions are also subject to `decimal` context.
     """
     # `Decimal('NaN')` in default context doesn't allow comparison `>=`, which means that using
     # `ceil(x) if x >= 0 else floor(x)` needs to be protected with
@@ -140,23 +103,6 @@ def _roundhalftozero(x: Real | Decimal) -> Integral:
     0
     >>> _roundhalftozero(-0.5)
     0
-
-    >>> _roundhalftozero(float('-Inf'))
-    Traceback (most recent call last):
-      ...
-    OverflowError: cannot convert float infinity to integer
-    >>> _roundhalftozero(float('-NaN'))
-    Traceback (most recent call last):
-      ...
-    ValueError: cannot convert float NaN to integer
-    >>> _roundhalftozero(Decimal('-Inf'))
-    Traceback (most recent call last):
-      ...
-    OverflowError: cannot convert Infinity to integer
-    >>> _roundhalftozero(Decimal('-NaN'))
-    Traceback (most recent call last):
-      ...
-    ValueError: cannot convert NaN to integer
     """
     return _sign(x) * ceil((2 * abs(x) - 1) / 2)
 
@@ -180,23 +126,6 @@ def _roundhalffromzero(x: Real | Decimal) -> Integral:
     0
     >>> _roundhalffromzero(-0.5)
     -1
-
-    >>> _roundhalffromzero(float('-Inf'))
-    Traceback (most recent call last):
-      ...
-    OverflowError: cannot convert float infinity to integer
-    >>> _roundhalffromzero(float('-NaN'))
-    Traceback (most recent call last):
-      ...
-    ValueError: cannot convert float NaN to integer
-    >>> _roundhalffromzero(Decimal('-Inf'))
-    Traceback (most recent call last):
-      ...
-    OverflowError: cannot convert Infinity to integer
-    >>> _roundhalffromzero(Decimal('-NaN'))
-    Traceback (most recent call last):
-      ...
-    ValueError: cannot convert NaN to integer
     """
     return _sign(x) * floor((2 * abs(x) + 1) / 2)
 
@@ -220,23 +149,6 @@ def _roundhalfdown(x: Real | Decimal) -> Integral:
     0
     >>> _roundhalfdown(-0.5)
     -1
-
-    >>> _roundhalfdown(float('-Inf'))
-    Traceback (most recent call last):
-      ...
-    OverflowError: cannot convert float infinity to integer
-    >>> _roundhalfdown(float('-NaN'))
-    Traceback (most recent call last):
-      ...
-    ValueError: cannot convert float NaN to integer
-    >>> _roundhalfdown(Decimal('-Inf'))
-    Traceback (most recent call last):
-      ...
-    OverflowError: cannot convert Infinity to integer
-    >>> _roundhalfdown(Decimal('-NaN'))
-    Traceback (most recent call last):
-      ...
-    ValueError: cannot convert NaN to integer
     """
     return ceil((2 * x - 1) / 2)
 
@@ -260,23 +172,6 @@ def _roundhalfup(x: Real | Decimal) -> Integral:
     0
     >>> _roundhalfup(-0.5)
     0
-
-    >>> _roundhalfup(float('-Inf'))
-    Traceback (most recent call last):
-      ...
-    OverflowError: cannot convert float infinity to integer
-    >>> _roundhalfup(float('-NaN'))
-    Traceback (most recent call last):
-      ...
-    ValueError: cannot convert float NaN to integer
-    >>> _roundhalfup(Decimal('-Inf'))
-    Traceback (most recent call last):
-      ...
-    OverflowError: cannot convert Infinity to integer
-    >>> _roundhalfup(Decimal('-NaN'))
-    Traceback (most recent call last):
-      ...
-    ValueError: cannot convert NaN to integer
     """
     return floor((2 * x + 1) / 2)
 
@@ -294,25 +189,6 @@ def _roundhalfodd(x: Real | Decimal) -> Integral:
     0
     >>> _roundhalfodd(0.0)
     0
-    >>> _roundhalfodd(-0.0)
-    0
-
-    >>> _roundhalfodd(float('-Inf'))
-    Traceback (most recent call last):
-      ...
-    OverflowError: cannot convert float infinity to integer
-    >>> _roundhalfodd(float('-NaN'))
-    Traceback (most recent call last):
-      ...
-    ValueError: cannot convert float NaN to integer
-    >>> _roundhalfodd(Decimal('-Inf'))
-    Traceback (most recent call last):
-      ...
-    OverflowError: cannot convert Infinity to integer
-    >>> _roundhalfodd(Decimal('-NaN'))
-    Traceback (most recent call last):
-      ...
-    ValueError: cannot convert NaN to integer
     """
     sgn_x = _sign(x)
     return round(x + sgn_x) - sgn_x
@@ -333,23 +209,6 @@ def _round05fromzero(x: Real | Decimal) -> Integral:
     -11
     >>> _round05fromzero(Fraction(-10,1))
     -10
-
-    >>> _round05fromzero(float('-Inf'))
-    Traceback (most recent call last):
-      ...
-    OverflowError: cannot convert float infinity to integer
-    >>> _round05fromzero(float('-NaN'))
-    Traceback (most recent call last):
-      ...
-    ValueError: cannot convert float NaN to integer
-    >>> _round05fromzero(Decimal('-Inf'))
-    Traceback (most recent call last):
-      ...
-    OverflowError: cannot convert Infinity to integer
-    >>> _round05fromzero(Decimal('-NaN'))
-    Traceback (most recent call last):
-      ...
-    ValueError: cannot convert NaN to integer
     """
     tozero_x = trunc(x)
     return tozero_x if tozero_x % 5 else _awayfromzero(x)
@@ -369,18 +228,6 @@ def _ceil_float(x: float) -> float:
     1.0
     >>> _ceil_float(-0.5) == -0.0 and copysign(1.0, _ceil_float(-0.5)) == -1.0
     True
-    >>> _ceil_float(0.0) == 0.0 and copysign(1.0, _ceil_float(0.0)) == 1.0
-    True
-    >>> _ceil_float(-0.0) == -0.0 and copysign(1.0, _ceil_float(-0.0)) == -1.0
-    True
-    >>> _ceil_float(float('Inf')) == float('Inf') and copysign(1.0, _ceil_float(float('Inf'))) == 1.0
-    True
-    >>> _ceil_float(float('-Inf')) == float('-Inf') and copysign(1.0, _ceil_float(float('-Inf'))) == -1.0
-    True
-    >>> isnan(_ceil_float(float('NaN'))) and copysign(1.0, _ceil_float(float('NaN'))) == 1.0
-    True
-    >>> isnan(_ceil_float(float('-NaN'))) and copysign(1.0, _ceil_float(float('-NaN'))) == -1.0
-    True
     """
     fpart, ipart = modf(x)
     return ipart if copysign(1.0, fpart) == -1.0 or fpart == 0.0 else ipart + 1.0
@@ -399,18 +246,6 @@ def _floor_float(x: float) -> float:
     >>> _floor_float(1.0)
     1.0
     >>> _floor_float(0.5) == 0.0 and copysign(1.0, _floor_float(0.5)) == 1.0
-    True
-    >>> _floor_float(0.0) == 0.0 and copysign(1.0, _floor_float(0.0)) == 1.0
-    True
-    >>> _floor_float(-0.0) == -0.0 and copysign(1.0, _floor_float(-0.0)) == -1.0
-    True
-    >>> _floor_float(float('Inf')) == float('Inf') and copysign(1.0, _floor_float(float('Inf'))) == 1.0
-    True
-    >>> _floor_float(float('-Inf')) == float('-Inf') and copysign(1.0, _floor_float(float('-Inf'))) == -1.0
-    True
-    >>> isnan(_floor_float(float('NaN'))) and copysign(1.0, _floor_float(float('NaN'))) == 1.0
-    True
-    >>> isnan(_floor_float(float('-NaN'))) and copysign(1.0, _floor_float(float('-NaN'))) == -1.0
     True
     """
     fpart, ipart = modf(x)
@@ -433,18 +268,6 @@ def _trunc_float(x: float) -> float:
     True
     >>> _trunc_float(0.5) == 0.0 and copysign(1.0, _trunc_float(0.5)) == 1.0
     True
-    >>> _trunc_float(0.0) == 0.0 and copysign(1.0, _trunc_float(0.0)) == 1.0
-    True
-    >>> _trunc_float(-0.0) == -0.0 and copysign(1.0, _trunc_float(-0.0)) == -1.0
-    True
-    >>> _trunc_float(float('Inf')) == float('Inf') and copysign(1.0, _trunc_float(float('Inf'))) == 1.0
-    True
-    >>> _trunc_float(float('-Inf')) == float('-Inf') and copysign(1.0, _trunc_float(float('-Inf'))) == -1.0
-    True
-    >>> isnan(_trunc_float(float('NaN'))) and copysign(1.0, _trunc_float(float('NaN'))) == 1.0
-    True
-    >>> isnan(_trunc_float(float('-NaN'))) and copysign(1.0, _trunc_float(float('-NaN'))) == -1.0
-    True
     """
     _, ipart = modf(x)
     return ipart
@@ -462,18 +285,6 @@ def _awayfromzero_float(x: float) -> float:
     -1.0
     >>> _awayfromzero_float(1.0)
     1.0
-    >>> _awayfromzero_float(0.0) == 0.0 and copysign(1.0, _awayfromzero_float(0.0)) == 1.0
-    True
-    >>> _awayfromzero_float(-0.0) == -0.0 and copysign(1.0, _awayfromzero_float(-0.0)) == -1.0
-    True
-    >>> _awayfromzero_float(float('Inf')) == float('Inf') and copysign(1.0, _awayfromzero_float(float('Inf'))) == 1.0
-    True
-    >>> _awayfromzero_float(float('-Inf')) == float('-Inf') and copysign(1.0, _awayfromzero_float(float('-Inf'))) == -1.0
-    True
-    >>> isnan(_awayfromzero_float(float('NaN'))) and copysign(1.0, _awayfromzero_float(float('NaN'))) == 1.0
-    True
-    >>> isnan(_awayfromzero_float(float('-NaN'))) and copysign(1.0, _awayfromzero_float(float('-NaN'))) == -1.0
-    True
     """
     fpart, ipart = modf(x)
     return ipart if fpart == 0.0 else ipart + copysign(1.0, fpart)
@@ -499,18 +310,6 @@ def _roundhalfeven_float(x: float) -> float:
     -1.0
     >>> _roundhalfeven_float(1.0)
     1.0
-    >>> _roundhalfeven_float(0.0) == 0.0 and copysign(1.0, _roundhalfeven_float(0.0)) == 1.0
-    True
-    >>> _roundhalfeven_float(-0.0) == -0.0 and copysign(1.0, _roundhalfeven_float(-0.0)) == -1.0
-    True
-    >>> _roundhalfeven_float(float('Inf')) == float('Inf') and copysign(1.0, _roundhalfeven_float(float('Inf'))) == 1.0
-    True
-    >>> _roundhalfeven_float(float('-Inf')) == float('-Inf') and copysign(1.0, _roundhalfeven_float(float('-Inf'))) == -1.0
-    True
-    >>> isnan(_roundhalfeven_float(float('NaN'))) and copysign(1.0, _roundhalfeven_float(float('NaN'))) == 1.0
-    True
-    >>> isnan(_roundhalfeven_float(float('-NaN'))) and copysign(1.0, _roundhalfeven_float(float('-NaN'))) == -1.0
-    True
     """
     return round(x, 0)
 
@@ -535,18 +334,6 @@ def _roundhalfodd_float(x: float) -> float:
     -1.0
     >>> _roundhalfodd_float(1.0)
     1.0
-    >>> _roundhalfodd_float(0.0) == 0.0 and copysign(1.0, _roundhalfodd_float(0.0)) == 1.0
-    True
-    >>> _roundhalfodd_float(-0.0) == -0.0 and copysign(1.0, _roundhalfodd_float(-0.0)) == -1.0
-    True
-    >>> _roundhalfodd_float(float('Inf')) == float('Inf') and copysign(1.0, _roundhalfodd_float(float('Inf'))) == 1.0
-    True
-    >>> _roundhalfodd_float(float('-Inf')) == float('-Inf') and copysign(1.0, _roundhalfodd_float(float('-Inf'))) == -1.0
-    True
-    >>> isnan(_roundhalfodd_float(float('NaN'))) and copysign(1.0, _roundhalfodd_float(float('NaN'))) == 1.0
-    True
-    >>> isnan(_roundhalfodd_float(float('-NaN'))) and copysign(1.0, _roundhalfodd_float(float('-NaN'))) == -1.0
-    True
     """
     sgn_x = copysign(1.0, x)
     return copysign(round(x + sgn_x, 0) - sgn_x, x)
@@ -576,18 +363,6 @@ def _roundhalftozero_float(x: float) -> float:
     True
     >>> _roundhalftozero_float(-0.5) == -0.0 and copysign(1.0, _roundhalftozero_float(-0.5)) == -1.0
     True
-    >>> _roundhalftozero_float(0.0) == 0.0 and copysign(1.0, _roundhalftozero_float(0.0)) == 1.0
-    True
-    >>> _roundhalftozero_float(-0.0) == -0.0 and copysign(1.0, _roundhalftozero_float(-0.0)) == -1.0
-    True
-    >>> _roundhalftozero_float(float('Inf')) == float('Inf') and copysign(1.0, _roundhalftozero_float(float('Inf'))) == 1.0
-    True
-    >>> _roundhalftozero_float(float('-Inf')) == float('-Inf') and copysign(1.0, _roundhalftozero_float(float('-Inf'))) == -1.0
-    True
-    >>> isnan(_roundhalftozero_float(float('NaN'))) and copysign(1.0, _roundhalftozero_float(float('NaN'))) == 1.0
-    True
-    >>> isnan(_roundhalftozero_float(float('-NaN'))) and copysign(1.0, _roundhalftozero_float(float('-NaN'))) == -1.0
-    True
     """
     return copysign(_ceil_float((2.0 * fabs(x) - 1.0) / 2.0), x)
 
@@ -616,18 +391,6 @@ def _roundhalffromzero_float(x: float) -> float:
     True
     >>> _roundhalffromzero_float(-0.5)
     -1.0
-    >>> _roundhalffromzero_float(0.0) == 0.0 and copysign(1.0, _roundhalffromzero_float(0.0)) == 1.0
-    True
-    >>> _roundhalffromzero_float(-0.0) == -0.0 and copysign(1.0, _roundhalffromzero_float(-0.0)) == -1.0
-    True
-    >>> _roundhalffromzero_float(float('Inf')) == float('Inf') and copysign(1.0, _roundhalffromzero_float(float('Inf'))) == 1.0
-    True
-    >>> _roundhalffromzero_float(float('-Inf')) == float('-Inf') and copysign(1.0, _roundhalffromzero_float(float('-Inf'))) == -1.0
-    True
-    >>> isnan(_roundhalffromzero_float(float('NaN'))) and copysign(1.0, _roundhalffromzero_float(float('NaN'))) == 1.0
-    True
-    >>> isnan(_roundhalffromzero_float(float('-NaN'))) and copysign(1.0, _roundhalffromzero_float(float('-NaN'))) == -1.0
-    True
     """
     return copysign(_floor_float((2.0 * fabs(x) + 1.0) / 2.0), x)
 
@@ -656,18 +419,6 @@ def _roundhalfdown_float(x: float) -> float:
     True
     >>> _roundhalfdown_float(-0.5)
     -1.0
-    >>> _roundhalfdown_float(0.0) == 0.0 and copysign(1.0, _roundhalfdown_float(0.0)) == 1.0
-    True
-    >>> _roundhalfdown_float(-0.0) == -0.0 and copysign(1.0, _roundhalfdown_float(-0.0)) == -1.0
-    True
-    >>> _roundhalfdown_float(float('Inf')) == float('Inf') and copysign(1.0, _roundhalfdown_float(float('Inf'))) == 1.0
-    True
-    >>> _roundhalfdown_float(float('-Inf')) == float('-Inf') and copysign(1.0, _roundhalfdown_float(float('-Inf'))) == -1.0
-    True
-    >>> isnan(_roundhalfdown_float(float('NaN'))) and copysign(1.0, _roundhalfdown_float(float('NaN'))) == 1.0
-    True
-    >>> isnan(_roundhalfdown_float(float('-NaN'))) and copysign(1.0, _roundhalfdown_float(float('-NaN'))) == -1.0
-    True
     """
     return copysign(_ceil_float((2.0 * x - 1.0) / 2.0), x)
 
@@ -695,18 +446,6 @@ def _roundhalfup_float(x: float) -> float:
     >>> _roundhalfup_float(-0.25) == -0.0 and copysign(1.0, _roundhalfup_float(-0.25)) == -1.0
     True
     >>> _roundhalfup_float(-0.5) == -0.0 and copysign(1.0, _roundhalfup_float(-0.5)) == -1.0
-    True
-    >>> _roundhalfup_float(0.0) == 0.0 and copysign(1.0, _roundhalfup_float(0.0)) == 1.0
-    True
-    >>> _roundhalfup_float(-0.0) == -0.0 and copysign(1.0, _roundhalfup_float(-0.0)) == -1.0
-    True
-    >>> _roundhalfup_float(float('Inf')) == float('Inf') and copysign(1.0, _roundhalfup_float(float('Inf'))) == 1.0
-    True
-    >>> _roundhalfup_float(float('-Inf')) == float('-Inf') and copysign(1.0, _roundhalfup_float(float('-Inf'))) == -1.0
-    True
-    >>> isnan(_roundhalfup_float(float('NaN'))) and copysign(1.0, _roundhalfup_float(float('NaN'))) == 1.0
-    True
-    >>> isnan(_roundhalfup_float(float('-NaN'))) and copysign(1.0, _roundhalfup_float(float('-NaN'))) == -1.0
     True
     """
     return copysign(_floor_float((2.0 * x + 1.0) / 2.0), x)
@@ -740,18 +479,6 @@ def _round05fromzero_float(x: float) -> float:
     -7.0
     >>> _round05fromzero_float(-7.0)
     -7.0
-    >>> _round05fromzero_float(0.0) == 0.0 and copysign(1.0, _round05fromzero_float(0.0)) == 1.0
-    True
-    >>> _round05fromzero_float(-0.0) == -0.0 and copysign(1.0, _round05fromzero_float(-0.0)) == -1.0
-    True
-    >>> _round05fromzero_float(float('Inf')) == float('Inf') and copysign(1.0, _round05fromzero_float(float('Inf'))) == 1.0
-    True
-    >>> _round05fromzero_float(float('-Inf')) == float('-Inf') and copysign(1.0, _round05fromzero_float(float('-Inf'))) == -1.0
-    True
-    >>> isnan(_round05fromzero_float(float('NaN'))) and copysign(1.0, _round05fromzero_float(float('NaN'))) == 1.0
-    True
-    >>> isnan(_round05fromzero_float(float('-NaN'))) and copysign(1.0, _round05fromzero_float(float('-NaN'))) == -1.0
-    True
     """
     fpart, ipart = modf(x)
     return ipart if fpart == 0.0 or fmod(ipart, 5.0) else ipart + copysign(1.0, fpart)
@@ -948,3 +675,4 @@ if __name__ == "__main__":
     import doctest
     from fractions import Fraction
     doctest.testmod()
+    doctest.testfile('../../tests/additional_doctests')

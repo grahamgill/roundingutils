@@ -713,6 +713,46 @@ def _roundhalfup_float(x: float) -> float:
 
 
 def _round05fromzero_float(x: float) -> float:
+    """Round `x` toward zero, unless the integer produced ends in zero or five (i.e. is a multiple of 5), in which case round away from zero instead,
+    taking and returning float. Float signs, Inf and NaN are all preserved.
+    
+    >>> _round05fromzero_float(5.0000000000001)
+    6.0
+    >>> _round05fromzero_float(4.9999999999999)
+    4.0
+    >>> _round05fromzero_float(5.0)
+    5.0
+    >>> _round05fromzero_float(-9.9999999999999)
+    -9.0
+    >>> _round05fromzero_float(-10.0000000000001)
+    -11.0
+    >>> _round05fromzero_float(-10.0)
+    -10.0
+    >>> _round05fromzero_float(3.0000000000001)
+    3.0
+    >>> _round05fromzero_float(3.9999999999999)
+    3.0
+    >>> _round05fromzero_float(3.0)
+    3.0
+    >>> _round05fromzero_float(-7.9999999999999)
+    -7.0
+    >>> _round05fromzero_float(-7.0000000000001)
+    -7.0
+    >>> _round05fromzero_float(-7.0)
+    -7.0
+    >>> _round05fromzero_float(0.0) == 0.0 and copysign(1.0, _round05fromzero_float(0.0)) == 1.0
+    True
+    >>> _round05fromzero_float(-0.0) == -0.0 and copysign(1.0, _round05fromzero_float(-0.0)) == -1.0
+    True
+    >>> _round05fromzero_float(float('Inf')) == float('Inf') and copysign(1.0, _round05fromzero_float(float('Inf'))) == 1.0
+    True
+    >>> _round05fromzero_float(float('-Inf')) == float('-Inf') and copysign(1.0, _round05fromzero_float(float('-Inf'))) == -1.0
+    True
+    >>> isnan(_round05fromzero_float(float('NaN'))) and copysign(1.0, _round05fromzero_float(float('NaN'))) == 1.0
+    True
+    >>> isnan(_round05fromzero_float(float('-NaN'))) and copysign(1.0, _round05fromzero_float(float('-NaN'))) == -1.0
+    True
+    """
     fpart, ipart = modf(x)
     return ipart if fpart == 0.0 or fmod(ipart, 5.0) else ipart + copysign(1.0, fpart)
 

@@ -494,7 +494,7 @@ def _roundhalfupdown_decimal(x: Decimal, direction: Decimal | int) -> Decimal:
     return x.to_integral_value(decimal.ROUND_HALF_DOWN if sgn_x < 0 else decimal.ROUND_HALF_UP)
 
 
-def _apply_to_real_part(f: Callable[[Number], Number]) -> Callable[[Number], Number]:
+def _apply_to_real_part(f: Callable[[Real], Number]) -> Callable[[Complex], Number]:
     return lambda x: f(x.real)
 
 

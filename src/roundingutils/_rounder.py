@@ -675,4 +675,4 @@ if __name__ == "__main__":
     import doctest
     from fractions import Fraction
     doctest.testmod()
-    doctest.testfile('../../tests/additional_doctests')
+    doctest.testfile('../../tests/additional_doctests.md')

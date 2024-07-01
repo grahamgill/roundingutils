@@ -510,6 +510,51 @@ def _roundhalfodd_decimal(x: Decimal) -> Decimal:
 
 
 def _roundhalfupdown_decimal(x: Decimal, direction: Decimal | int) -> Decimal:
+    """Rounds to the nearest integer, with half going toward +infinity if the sign of `direction` is positive, and half
+    going toward -infinity if the sign of `direction` is negative. Takes and returns `Decimal`.
+    Decimal signs, Inf and NaN are all preserved.
+    
+    >>> _roundhalfupdown_decimal(Decimal('-3.2'), 1)
+    Decimal('-3')
+    >>> _roundhalfupdown_decimal(Decimal('5.6'), 1)
+    Decimal('6')
+    >>> _roundhalfupdown_decimal(Decimal('-3.5'), 1)
+    Decimal('-3')
+    >>> _roundhalfupdown_decimal(Decimal('5.5'), 1)
+    Decimal('6')
+    >>> _roundhalfupdown_decimal(Decimal('-1'), 1)
+    Decimal('-1')
+    >>> _roundhalfupdown_decimal(Decimal('1'), 1)
+    Decimal('1')
+    >>> _roundhalfupdown_decimal(Decimal('0.5'), 1)
+    Decimal('1')
+    >>> _roundhalfupdown_decimal(Decimal('0.25'), 1) == Decimal('0') and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('0.25'), 1)) == Decimal('1')
+    True
+    >>> _roundhalfupdown_decimal(Decimal('-0.25'), 1) == Decimal('-0') and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('-0.25'), 1)) == Decimal('-1')
+    True
+    >>> _roundhalfupdown_decimal(Decimal('-0.5'), 1) == Decimal('-0') and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('-0.5'), 1)) == Decimal('-1')
+    True
+    >>> _roundhalfupdown_decimal(Decimal('-3.2'), -1)
+    Decimal('-3')
+    >>> _roundhalfupdown_decimal(Decimal('5.6'), -1)
+    Decimal('6')
+    >>> _roundhalfupdown_decimal(Decimal('-3.5'), -1)
+    Decimal('-4')
+    >>> _roundhalfupdown_decimal(Decimal('5.5'), -1)
+    Decimal('5')
+    >>> _roundhalfupdown_decimal(Decimal('-1'), -1)
+    Decimal('-1')
+    >>> _roundhalfupdown_decimal(Decimal('1'), -1)
+    Decimal('1')
+    >>> _roundhalfupdown_decimal(Decimal('0.5'), -1) == Decimal('0') and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('0.5'), -1)) == Decimal('1')
+    True
+    >>> _roundhalfupdown_decimal(Decimal('0.25'), -1) == Decimal('0') and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('0.25'), -1)) == Decimal('1')
+    True
+    >>> _roundhalfupdown_decimal(Decimal('-0.25'), -1) == Decimal('-0') and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('-0.25'), -1)) == Decimal('-1')
+    True
+    >>> _roundhalfupdown_decimal(Decimal('-0.5'), -1)
+    Decimal('-1')
+    """
     sgn_x = Decimal(1).copy_sign(x) * Decimal(1).copy_sign(direction)
     return x.to_integral_value(decimal.ROUND_HALF_DOWN if sgn_x < 0 else decimal.ROUND_HALF_UP)
 

@@ -6,7 +6,7 @@ Additional doctests for `../src/roundingutils/_rounder.py` that are not illustra
     ...   _sign, _awayfromzero, _roundhalftozero, _roundhalffromzero, _roundhalfdown, _roundhalfup, _roundhalfodd, \
     ...   _round05fromzero, _ceil_float, _floor_float, _trunc_float, _awayfromzero_float, _roundhalfeven_float, _roundhalfodd_float, \
     ...   _roundhalftozero_float, _roundhalffromzero_float, _roundhalfdown_float, _roundhalfup_float, _round05fromzero_float, \
-    ...   _roundhalfodd_decimal
+    ...   _roundhalfodd_decimal, _roundhalfupdown_decimal
     >>> _sign(float('Inf'))
     1
     >>> _sign(float('-Inf'))
@@ -284,4 +284,28 @@ Additional doctests for `../src/roundingutils/_rounder.py` that are not illustra
     >>> isnan(_roundhalfodd_decimal(Decimal('NaN'))) and copysign(Decimal('1'), _roundhalfodd_decimal(Decimal('NaN'))) == Decimal('1')
     True
     >>> isnan(_roundhalfodd_decimal(Decimal('-NaN'))) and copysign(Decimal('1'), _roundhalfodd_decimal(Decimal('-NaN'))) == Decimal('-1')
+    True
+    >>> _roundhalfupdown_decimal(Decimal('0'), 1) == Decimal('0') and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('0'), 1)) == Decimal('1')
+    True
+    >>> _roundhalfupdown_decimal(Decimal('-0'), 1) == Decimal('-0') and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('-0'), 1)) == Decimal('-1')
+    True
+    >>> _roundhalfupdown_decimal(Decimal('Inf'), 1) == Decimal('Inf') and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('Inf'), 1)) == Decimal('1')
+    True
+    >>> _roundhalfupdown_decimal(Decimal('-Inf'), 1) == Decimal('-Inf') and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('-Inf'), 1)) == Decimal('-1')
+    True
+    >>> isnan(_roundhalfupdown_decimal(Decimal('NaN'), 1)) and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('NaN'), 1)) == Decimal('1')
+    True
+    >>> isnan(_roundhalfupdown_decimal(Decimal('-NaN'), 1)) and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('-NaN'), 1)) == Decimal('-1')
+    True
+    >>> _roundhalfupdown_decimal(Decimal('0'), -1) == Decimal('0') and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('0'), -1)) == Decimal('1')
+    True
+    >>> _roundhalfupdown_decimal(Decimal('-0'), -1) == Decimal('-0') and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('-0'), -1)) == Decimal('-1')
+    True
+    >>> _roundhalfupdown_decimal(Decimal('Inf'), -1) == Decimal('Inf') and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('Inf'), -1)) == Decimal('1')
+    True
+    >>> _roundhalfupdown_decimal(Decimal('-Inf'), -1) == Decimal('-Inf') and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('-Inf'), -1)) == Decimal('-1')
+    True
+    >>> isnan(_roundhalfupdown_decimal(Decimal('NaN'), -1)) and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('NaN'), -1)) == Decimal('1')
+    True
+    >>> isnan(_roundhalfupdown_decimal(Decimal('-NaN'), -1)) and copysign(Decimal('1'), _roundhalfupdown_decimal(Decimal('-NaN'), -1)) == Decimal('-1')
     True

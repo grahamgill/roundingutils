@@ -16,6 +16,28 @@ class RoundingMode(Enum):
     See [Rounding on Wikipedia](https://en.wikipedia.org/wiki/Rounding). The method `ROUND05FROMZERO` is documented on that page
     as [Rounding to Prepare for Shorter Precision (RPSP)](https://en.wikipedia.org/wiki/Rounding#Rounding_to_prepare_for_shorter_precision).
 
+    >>> RoundingMode.ROUNDDOWN
+    <RoundingMode.ROUNDDOWN: 'Round toward -infinity'>
+    >>> RoundingMode.ROUNDUP
+    <RoundingMode.ROUNDUP: 'Round toward +infinity'>
+    >>> RoundingMode.ROUNDTOZERO
+    <RoundingMode.ROUNDTOZERO: 'Round toward zero'>
+    >>> RoundingMode.ROUNDFROMZERO
+    <RoundingMode.ROUNDFROMZERO: 'Round away from zero, toward +infinity if positive and toward -infinity if negative'>
+    >>> RoundingMode.ROUNDHALFEVEN
+    <RoundingMode.ROUNDHALFEVEN: 'Round to nearest decimal with ties going to the even digit'>
+    >>> RoundingMode.ROUNDHALFODD
+    <RoundingMode.ROUNDHALFODD: 'Round to nearest decimal with ties going to the odd digit'>
+    >>> RoundingMode.ROUNDHALFDOWN
+    <RoundingMode.ROUNDHALFDOWN: 'Round to nearest decimal with ties going toward -infinity'>
+    >>> RoundingMode.ROUNDHALFUP
+    <RoundingMode.ROUNDHALFUP: 'Round to nearest decimal with ties going toward +infinity'>
+    >>> RoundingMode.ROUNDHALFTOZERO
+    <RoundingMode.ROUNDHALFTOZERO: 'Round to nearest decimal with ties going toward zero'>
+    >>> RoundingMode.ROUNDHALFFROMZERO
+    <RoundingMode.ROUNDHALFFROMZERO: 'Round to nearest decimal with ties going toward +infinity if positive and toward -infinity if negative'>
+    >>> RoundingMode.ROUND05FROMZERO
+    <RoundingMode.ROUND05FROMZERO: 'Round toward zero, unless the rounded number ends in 0 or 5, in which case round toward +infinity if positive and toward -infinity if negative'>
     """
     ROUNDDOWN = 'Round toward -infinity'
     ROUNDUP = 'Round toward +infinity'
@@ -560,14 +582,51 @@ def _roundhalfupdown_decimal(x: Decimal, direction: Decimal | int) -> Decimal:
 
 
 def _apply_to_real_part(f: Callable[[Real], Number]) -> Callable[[Complex], Number]:
+    """Convert `Callable` `f` from a function on `Real` numbers to a function on `Complex` numbers by applying it to the real part of its
+    input.
+    
+    >>> _sign(3.2 + 1j)
+    Traceback (most recent call last):
+      ...
+    TypeError: must be real number, not complex
+
+    >>> _apply_to_real_part(_sign)(3.2 + 1j)
+    1
+
+    >>> _roundhalfodd_float(complex(-1.5, float('NaN')))
+    Traceback (most recent call last):
+      ...
+    TypeError: must be real number, not complex
+
+    >>> _apply_to_real_part(_roundhalfodd_float)(complex(-1.5, float('NaN')))
+    -1.0
+    >>> _apply_to_real_part(_roundhalfodd_float)(2.5)
+    3.0
+    >>> _apply_to_real_part(_roundhalfodd_float)(5)
+    5.0
+    """
     return lambda x: f(x.real)
 
 
 def _map_over_dict_vals(f: Callable, d: Dict) -> Dict:
+    """Map `Callable` `f` over the values of dictionary `d`, returning the new dictionary. Keys are unchanged.
+
+    >>> _map_over_dict_vals(lambda x: x * x, {'a':1, 'b':2, 'c':3})
+    {'a': 1, 'b': 4, 'c': 9}
+    >>> _map_over_dict_vals(_apply_to_real_part(_sign), {'a':3+2j, 'b':0+5j, 'c':-8-3j, 'd':complex(float('Inf'), 2)})
+    {'a': 1, 'b': 0, 'c': -1, 'd': 1}
+    """
     return {k: f(v) for k, v in d.items()}
 
 
 def _raise_notimplemented():
+    """Raises the `NotImplementedError` exception.
+
+    >>> _raise_notimplemented()
+    Traceback (most recent call last):
+      ...
+    NotImplementedError
+    """
     raise NotImplementedError
 
 

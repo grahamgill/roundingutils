@@ -34,6 +34,8 @@ def _sign(x: Real | Decimal) -> Integral:
     """Signum function.
 
     Returns 0 if input is numerically equal to zero, 1 if input is positive, -1 if input is negative.
+
+    #### Examples
     >>> _sign(Fraction(5,2))
     1
     >>> _sign(Decimal('-3.2'))
@@ -57,6 +59,7 @@ def _sign(x: Real | Decimal) -> Integral:
 def _awayfromzero(x: Real | Decimal) -> Integral:
     """Rounding to integer away from zero, toward +infinity if input is positive, and toward -infinity if input is negative.
     
+    #### Examples
     >>> _awayfromzero(1.0000000001)
     2
     >>> _awayfromzero(Fraction(3,1))
@@ -87,6 +90,7 @@ def _awayfromzero(x: Real | Decimal) -> Integral:
 def _roundhalftozero(x: Real | Decimal) -> Integral:
     """Round to nearest integer, with exactly half going toward zero.
     
+    #### Examples
     >>> _roundhalftozero(Fraction(3,2))
     1
     >>> _roundhalftozero(Decimal('-1.5'))
@@ -110,6 +114,7 @@ def _roundhalftozero(x: Real | Decimal) -> Integral:
 def _roundhalffromzero(x: Real | Decimal) -> Integral:
     """Round `x` to nearest integer, with exactly half going toward +infinity if `x > 0` and going toward -infinity if `x < 0`.
     
+    #### Examples
     >>> _roundhalffromzero(Fraction(3,2))
     2
     >>> _roundhalffromzero(Decimal('-1.5'))
@@ -133,6 +138,7 @@ def _roundhalffromzero(x: Real | Decimal) -> Integral:
 def _roundhalfdown(x: Real | Decimal) -> Integral:
     """Round `x` to nearest integer, with exactly half going toward -infinity.
     
+    #### Examples
     >>> _roundhalfdown(Fraction(3,2))
     1
     >>> _roundhalfdown(Decimal('-1.5'))
@@ -156,6 +162,7 @@ def _roundhalfdown(x: Real | Decimal) -> Integral:
 def _roundhalfup(x: Real | Decimal) -> Integral:
     """Round `x` to nearest integer, with exactly half going toward +infinity.
     
+    #### Examples
     >>> _roundhalfup(Fraction(3,2))
     2
     >>> _roundhalfup(Decimal('-1.5'))
@@ -179,6 +186,7 @@ def _roundhalfup(x: Real | Decimal) -> Integral:
 def _roundhalfodd(x: Real | Decimal) -> Integral:
     """Round `x` to nearest integer, with exactly half going toward the nearest odd integer.
     
+    #### Examples
     >>> _roundhalfodd(Fraction(3,2))
     1
     >>> _roundhalfodd(Decimal('-1.5'))
@@ -197,6 +205,7 @@ def _roundhalfodd(x: Real | Decimal) -> Integral:
 def _round05fromzero(x: Real | Decimal) -> Integral:
     """Round `x` toward zero, unless the integer produced ends in zero or five (i.e. is a multiple of 5), in which case round away from zero instead.
     
+    #### Examples
     >>> _round05fromzero(5.0000000000001)
     6
     >>> _round05fromzero(4.9999999999999)
@@ -218,6 +227,7 @@ def _ceil_float(x: float) -> float:
     """As `ceil` but takes and returns `float`.
     Float signs, Inf and NaN are all preserved.
     
+    #### Examples
     >>> _ceil_float(-3.2)
     -3.0
     >>> _ceil_float(5.6)
@@ -237,6 +247,7 @@ def _floor_float(x: float) -> float:
     """As `floor` but takes and returns `float`.
     Float signs, Inf and NaN are all preserved.
     
+    #### Examples
     >>> _floor_float(-3.2)
     -4.0
     >>> _floor_float(5.6)
@@ -256,6 +267,7 @@ def _trunc_float(x: float) -> float:
     """As `trunc` but takes and returns `float`.
     Float signs, Inf and NaN are all preserved.
     
+    #### Examples
     >>> _trunc_float(-3.2)
     -3.0
     >>> _trunc_float(5.6)
@@ -277,6 +289,7 @@ def _awayfromzero_float(x: float) -> float:
     """As `_awayfromzero` but takes and returns `float`.
     Float signs, Inf and NaN are all preserved.
     
+    #### Examples
     >>> _awayfromzero_float(-3.2)
     -4.0
     >>> _awayfromzero_float(5.6)
@@ -294,6 +307,7 @@ def _roundhalfeven_float(x: float) -> float:
     """A synonym for `round(x, 0)`, taking and returning `float`.
     Float signs, Inf and NaN are all preserved.
     
+    #### Examples
     >>> _roundhalfeven_float(-3.2)
     -3.0
     >>> _roundhalfeven_float(5.6)
@@ -318,6 +332,7 @@ def _roundhalfodd_float(x: float) -> float:
     """Like `round(x, 0)`, but rounds half to the nearest odd integer instead of even integer, taking and returning `float`.
     Float signs, Inf and NaN are all preserved.
     
+    #### Examples
     >>> _roundhalfodd_float(-3.2)
     -3.0
     >>> _roundhalfodd_float(5.6)
@@ -343,6 +358,7 @@ def _roundhalftozero_float(x: float) -> float:
     """Rounds to nearest integer, and rounds half to the nearest integer nearest zero, taking and returning `float`.
     Float signs, Inf and NaN are all preserved.
     
+    #### Examples
     >>> _roundhalftozero_float(-3.2)
     -3.0
     >>> _roundhalftozero_float(5.6)
@@ -371,6 +387,7 @@ def _roundhalffromzero_float(x: float) -> float:
     """Rounds to nearest integer, and rounds half to the nearest integer farthest from zero, taking and returning `float`.
     Float signs, Inf and NaN are all preserved.
     
+    #### Examples
     >>> _roundhalffromzero_float(-3.2)
     -3.0
     >>> _roundhalffromzero_float(5.6)
@@ -399,6 +416,7 @@ def _roundhalfdown_float(x: float) -> float:
     """Rounds to nearest integer, and rounds half toward -infinity, taking and returning `float`.
     Float signs, Inf and NaN are all preserved.
     
+    #### Examples
     >>> _roundhalfdown_float(-3.2)
     -3.0
     >>> _roundhalfdown_float(5.6)
@@ -427,6 +445,7 @@ def _roundhalfup_float(x: float) -> float:
     """Rounds to nearest integer, and rounds half toward +infinity, taking and returning `float`.
     Float signs, Inf and NaN are all preserved.
     
+    #### Examples
     >>> _roundhalfup_float(-3.2)
     -3.0
     >>> _roundhalfup_float(5.6)
@@ -455,6 +474,7 @@ def _round05fromzero_float(x: float) -> float:
     """Round `x` toward zero, unless the integer produced ends in zero or five (i.e. is a multiple of 5), in which case round away from zero instead,
     taking and returning float. Float signs, Inf and NaN are all preserved.
     
+    #### Examples
     >>> _round05fromzero_float(5.0000000000001)
     6.0
     >>> _round05fromzero_float(4.9999999999999)
@@ -488,6 +508,7 @@ def _roundhalfodd_decimal(x: Decimal) -> Decimal:
     """Like `round(x, 0)`, but rounds half to the nearest odd integer instead of even integer, taking and returning `Decimal`.
     Decimal signs, Inf and NaN are all preserved.
     
+    #### Examples
     >>> _roundhalfodd_decimal(Decimal('-3.2'))
     Decimal('-3')
     >>> _roundhalfodd_decimal(Decimal('5.6'))
@@ -514,6 +535,7 @@ def _roundhalfupdown_decimal(x: Decimal, direction: Decimal | int) -> Decimal:
     going toward -infinity if the sign of `direction` is negative. Takes and returns `Decimal`.
     Decimal signs, Inf and NaN are all preserved.
     
+    #### Examples
     >>> _roundhalfupdown_decimal(Decimal('-3.2'), 1)
     Decimal('-3')
     >>> _roundhalfupdown_decimal(Decimal('5.6'), 1)
@@ -563,6 +585,7 @@ def _apply_to_real_part(f: Callable[[Real], Number]) -> Callable[[Complex], Numb
     """Convert `Callable` `f` from a function on `Real` numbers to a function on `Complex` numbers by applying it to the real part of its
     input.
     
+    #### Examples
     >>> _sign(3.2 + 1j)
     Traceback (most recent call last):
       ...
@@ -580,8 +603,8 @@ def _apply_to_real_part(f: Callable[[Real], Number]) -> Callable[[Complex], Numb
     -1.0
     >>> _apply_to_real_part(_roundhalfodd_float)(2.5)
     3.0
-    >>> _apply_to_real_part(_roundhalfodd_float)(5)
-    5.0
+    >>> _apply_to_real_part(_roundhalfodd_decimal)(5)
+    Decimal('5')
     """
     return lambda x: f(x.real)
 
@@ -589,6 +612,7 @@ def _apply_to_real_part(f: Callable[[Real], Number]) -> Callable[[Complex], Numb
 def _map_over_dict_vals(f: Callable, d: Dict) -> Dict:
     """Map `Callable` `f` over the values of dictionary `d`, returning the new dictionary. Keys are unchanged.
 
+    #### Examples
     >>> _map_over_dict_vals(lambda x: x * x, {'a':1, 'b':2, 'c':3})
     {'a': 1, 'b': 4, 'c': 9}
     >>> _map_over_dict_vals(_apply_to_real_part(_sign), {'a':3+2j, 'b':0+5j, 'c':-8-3j, 'd':complex(float('Inf'), 2)})
@@ -612,6 +636,7 @@ class Rounder():
         RoundingMode.ROUNDHALFFROMZERO: _roundhalffromzero,
         RoundingMode.ROUND05FROMZERO: _round05fromzero
     }
+    "Map of `RoundingMode`s to functions from `Real` or `Decimal` to `Integral`." 
 
     _float_to_float = {
         RoundingMode.ROUNDDOWN: _floor_float,
@@ -626,6 +651,7 @@ class Rounder():
         RoundingMode.ROUNDHALFFROMZERO: _roundhalffromzero_float,
         RoundingMode.ROUND05FROMZERO: _round05fromzero_float
     }
+    "Map of `RoundingMode`s to functions from `float` to `float`." 
 
     _decimal_to_decimal = {
         RoundingMode.ROUNDDOWN: lambda x: x.to_integral_value(decimal.ROUND_FLOOR),
@@ -641,6 +667,7 @@ class Rounder():
         RoundingMode.ROUND05FROMZERO: lambda x: x.to_integral_value(
             decimal.ROUND_05UP)
     }
+    "Map of `RoundingMode`s to functions from `Decimal` to `Decimal`." 
 
     def __init__(self, number_type: Number | type[Number], default_mode: RoundingMode = RoundingMode.ROUNDHALFEVEN):
         if not isinstance(number_type, type):
@@ -788,6 +815,23 @@ class Rounder():
 
     @staticmethod
     def _raise_notimplemented(_ = None, msg = None):
+        """Raises the `NotImplementedError` exception. The first argument is ignored. It is a placeholder for a value to be rounded,
+        ignored because the rounding method requested is not implemented.
+
+        #### Examples
+        >>> Rounder(float)._raise_notimplemented(3.2)
+        Traceback (most recent call last):
+          ...
+        NotImplementedError
+        >>> Rounder._raise_notimplemented(5.7, 'not implemented')
+        Traceback (most recent call last):
+          ...
+        NotImplementedError: not implemented
+        >>> Rounder._raise_notimplemented(msg = 'not gonna work')
+        Traceback (most recent call last):
+          ...
+        NotImplementedError: not gonna work
+        """
         raise NotImplementedError if msg is None else NotImplementedError(msg)
 
 

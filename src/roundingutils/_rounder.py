@@ -1,3 +1,4 @@
+import abc
 from collections import defaultdict
 import decimal
 from decimal import Decimal
@@ -673,16 +674,18 @@ class Rounder():
                 self._to_number_type, Rounder._decimal_to_decimal)
 
         elif issubclass(number_type, Real):
-            self._roundingfuncs[0] |= _map_over_dict_vals(
-                self._to_number_type, Rounder._real_to_integral)
+            if not isinstance(number_type, abc.ABCMeta):
+              self._roundingfuncs[0] |= _map_over_dict_vals(
+                  self._to_number_type, Rounder._real_to_integral)
 
         elif issubclass(number_type, complex):
             self._roundingfuncs[0] |= _map_over_dict_vals(
                 lambda f: self._to_number_type(_apply_to_real_part(f)), Rounder._float_to_float)
 
         elif issubclass(number_type, Complex):
-            self._roundingfuncs[0] |= _map_over_dict_vals(lambda f: self._to_number_type(
-                _apply_to_real_part(f)), Rounder._real_to_integral)
+            if not isinstance(number_type, abc.ABCMeta):
+              self._roundingfuncs[0] |= _map_over_dict_vals(lambda f: self._to_number_type(
+                  _apply_to_real_part(f)), Rounder._real_to_integral)
 
         self.default_mode = default_mode
 

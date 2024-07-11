@@ -596,18 +596,8 @@ def _map_over_dict_vals(f: Callable, d: Dict) -> Dict:
     return {k: f(v) for k, v in d.items()}
 
 
-def _raise_notimplemented():
-    """Raises the `NotImplementedError` exception.
-
-    >>> _raise_notimplemented()
-    Traceback (most recent call last):
-      ...
-    NotImplementedError
-    """
-    raise NotImplementedError
-
-
 class Rounder():
+
     _real_to_integral = {
         RoundingMode.ROUNDDOWN: floor,
         RoundingMode.ROUNDUP: ceil,
@@ -652,13 +642,20 @@ class Rounder():
     }
 
     def __init__(self, number_type: Number | type[Number], default_mode: RoundingMode = RoundingMode.ROUNDHALFEVEN):
-        if isinstance(number_type, Number):
+        if not isinstance(number_type, type):
             number_type = type(number_type)
 
+        if issubclass(number_type, Number) and not issubclass(number_type, Complex | Decimal):
+            Rounder._raise_notimplemented(msg = f'Number subclass {number_type.__name__} is not implemented in {type(self).__name__}')
+        elif not issubclass(number_type, Number):
+            raise TypeError(f'{number_type.__name__} is not a subclass of Number')
+
         self._number_type = number_type
-        self._isinteger = Rounder._isinteger_selector(number_type)
+        self._isinteger = self.isinteger_selector(number_type)
+        if self._isinteger is None:
+            Rounder._raise_notimplemented(msg = f'Number subclass {number_type.__name__} has no defined method to decide when a number is an integer')
         self._roundingfuncs = [defaultdict(
-            _raise_notimplemented), defaultdict(_raise_notimplemented)]
+            lambda: Rounder._raise_notimplemented), defaultdict(lambda: Rounder._raise_notimplemented)]
 
         if issubclass(number_type, Real | Decimal):
             self._roundingfuncs[1] |= Rounder._real_to_integral
@@ -731,9 +728,12 @@ class Rounder():
     def roundingfuncs(self):
         return self._roundingfuncs
 
-    def setroundingfuncs(self, d: Dict[RoundingMode, Callable[[Number], Number]], to_int: bool, default=_raise_notimplemented):
+    def setroundingfuncs(self, d: Dict[RoundingMode, Callable[[Number], Number]], to_int: bool, default=NotImplemented):
+        if default is NotImplemented:
+            default = lambda: Rounder._raise_notimplemented
         self._roundingfuncs[to_int] = defaultdict(default, d)
         self._roundingfuncs[to_int][None] = self._roundingfuncs[to_int][self.default_mode]
+        return self._roundingfuncs
 
     @property
     def isinteger(self):
@@ -741,10 +741,19 @@ class Rounder():
 
     @isinteger.setter
     def isinteger(self, fn: Callable[[Number], bool]):
-        self._isinteger = lambda x: True if isinstance(x, Integral) else fn(x)
+        self._isinteger = fn
 
     @staticmethod
-    def _isinteger_selector(t: type[Number]) -> Callable[[Number], bool]:
+    def isinteger_selector(t: type[Number]) -> Callable[[Number], bool] | None:
+        """Returns an "isinteger" type function for the `Number` subclass `t`. `t` is checked to be a subclass of
+        the following classes, in order: `Integral`, `float`, `Decimal`, `Rational`, `Real`, `complex`, `Complex`; and
+        a function is returned for the first class listed of which `t` is a subclass. Thus if `t` is a subclass of 
+        e.g. `Real` like `$\mathbb Q(\sqrt 5)$` (where the rational coefficients are given by `Rational`s) and defines
+        its own "isinteger" type method, `Rounder.isinteger_selector(t)` will return the
+        isinteger function for `Real` as it does not know about the isinteger method for the class of `t`.
+        
+        Returns `None` for a `Number` subclass which is not a subclass of `Decimal` or of `Complex`.
+        """
         if issubclass(t, Integral):
             return lambda _: True
 
@@ -754,7 +763,10 @@ class Rounder():
         if issubclass(t, Decimal):
             return lambda x: x.is_finite() and x.as_integer_ratio()[1] == 1
 
+        # nothing special for `Fraction` that's more specific than general `Rational`
         if issubclass(t, Rational):
+            # right clause of the `or` shouldn't be needed but just in case a `Rational` subclass doesn't keep
+            # numerator and denominator in lowest terms with positive denominator
             return lambda x: x.denominator == 1 or x.numerator % x.denominator == 0
 
         if issubclass(t, Real):
@@ -767,9 +779,13 @@ class Rounder():
             return lambda x: x.imag == 0 and isfinite(x.real) and round(x.real, 0) == x.real
 
         if issubclass(t, Number):
-            raise NotImplementedError
+            return None
 
         return lambda _: False
+
+    @staticmethod
+    def _raise_notimplemented(_ = None, msg = None):
+        raise NotImplementedError if msg is None else NotImplementedError(msg)
 
 
 if __name__ == "__main__":

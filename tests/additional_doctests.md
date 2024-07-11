@@ -6,7 +6,31 @@ Additional doctests for `../src/roundingutils/_rounder.py` that are not illustra
     ...   _sign, _awayfromzero, _roundhalftozero, _roundhalffromzero, _roundhalfdown, _roundhalfup, _roundhalfodd, \
     ...   _round05fromzero, _ceil_float, _floor_float, _trunc_float, _awayfromzero_float, _roundhalfeven_float, _roundhalfodd_float, \
     ...   _roundhalftozero_float, _roundhalffromzero_float, _roundhalfdown_float, _roundhalfup_float, _round05fromzero_float, \
-    ...   _roundhalfodd_decimal, _roundhalfupdown_decimal
+    ...   _roundhalfodd_decimal, _roundhalfupdown_decimal, RoundingMode
+
+    >>> RoundingMode.ROUNDDOWN
+    <RoundingMode.ROUNDDOWN: 'Round toward -infinity'>
+    >>> RoundingMode.ROUNDUP
+    <RoundingMode.ROUNDUP: 'Round toward +infinity'>
+    >>> RoundingMode.ROUNDTOZERO
+    <RoundingMode.ROUNDTOZERO: 'Round toward zero'>
+    >>> RoundingMode.ROUNDFROMZERO
+    <RoundingMode.ROUNDFROMZERO: 'Round away from zero, toward +infinity if positive and toward -infinity if negative'>
+    >>> RoundingMode.ROUNDHALFEVEN
+    <RoundingMode.ROUNDHALFEVEN: 'Round to nearest decimal with ties going to the even digit'>
+    >>> RoundingMode.ROUNDHALFODD
+    <RoundingMode.ROUNDHALFODD: 'Round to nearest decimal with ties going to the odd digit'>
+    >>> RoundingMode.ROUNDHALFDOWN
+    <RoundingMode.ROUNDHALFDOWN: 'Round to nearest decimal with ties going toward -infinity'>
+    >>> RoundingMode.ROUNDHALFUP
+    <RoundingMode.ROUNDHALFUP: 'Round to nearest decimal with ties going toward +infinity'>
+    >>> RoundingMode.ROUNDHALFTOZERO
+    <RoundingMode.ROUNDHALFTOZERO: 'Round to nearest decimal with ties going toward zero'>
+    >>> RoundingMode.ROUNDHALFFROMZERO
+    <RoundingMode.ROUNDHALFFROMZERO: 'Round to nearest decimal with ties going toward +infinity if positive and toward -infinity if negative'>
+    >>> RoundingMode.ROUND05FROMZERO
+    <RoundingMode.ROUND05FROMZERO: 'Round toward zero, unless the rounded number ends in 0 or 5, in which case round toward +infinity if positive and toward -infinity if negative'>
+
     >>> _sign(float('Inf'))
     1
     >>> _sign(float('-Inf'))

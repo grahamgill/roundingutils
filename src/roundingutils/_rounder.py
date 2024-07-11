@@ -15,29 +15,6 @@ class RoundingMode(Enum):
 
     See [Rounding on Wikipedia](https://en.wikipedia.org/wiki/Rounding). The method `ROUND05FROMZERO` is documented on that page
     as [Rounding to Prepare for Shorter Precision (RPSP)](https://en.wikipedia.org/wiki/Rounding#Rounding_to_prepare_for_shorter_precision).
-
-    >>> RoundingMode.ROUNDDOWN
-    <RoundingMode.ROUNDDOWN: 'Round toward -infinity'>
-    >>> RoundingMode.ROUNDUP
-    <RoundingMode.ROUNDUP: 'Round toward +infinity'>
-    >>> RoundingMode.ROUNDTOZERO
-    <RoundingMode.ROUNDTOZERO: 'Round toward zero'>
-    >>> RoundingMode.ROUNDFROMZERO
-    <RoundingMode.ROUNDFROMZERO: 'Round away from zero, toward +infinity if positive and toward -infinity if negative'>
-    >>> RoundingMode.ROUNDHALFEVEN
-    <RoundingMode.ROUNDHALFEVEN: 'Round to nearest decimal with ties going to the even digit'>
-    >>> RoundingMode.ROUNDHALFODD
-    <RoundingMode.ROUNDHALFODD: 'Round to nearest decimal with ties going to the odd digit'>
-    >>> RoundingMode.ROUNDHALFDOWN
-    <RoundingMode.ROUNDHALFDOWN: 'Round to nearest decimal with ties going toward -infinity'>
-    >>> RoundingMode.ROUNDHALFUP
-    <RoundingMode.ROUNDHALFUP: 'Round to nearest decimal with ties going toward +infinity'>
-    >>> RoundingMode.ROUNDHALFTOZERO
-    <RoundingMode.ROUNDHALFTOZERO: 'Round to nearest decimal with ties going toward zero'>
-    >>> RoundingMode.ROUNDHALFFROMZERO
-    <RoundingMode.ROUNDHALFFROMZERO: 'Round to nearest decimal with ties going toward +infinity if positive and toward -infinity if negative'>
-    >>> RoundingMode.ROUND05FROMZERO
-    <RoundingMode.ROUND05FROMZERO: 'Round toward zero, unless the rounded number ends in 0 or 5, in which case round toward +infinity if positive and toward -infinity if negative'>
     """
     ROUNDDOWN = 'Round toward -infinity'
     ROUNDUP = 'Round toward +infinity'

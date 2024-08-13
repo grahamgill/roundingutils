@@ -674,16 +674,18 @@ class Rounder():
             number_type = type(number_type)
 
         if issubclass(number_type, Number) and not issubclass(number_type, Complex | Decimal):
-            Rounder._raise_notimplemented(msg = f'Number subclass {number_type.__name__} is not implemented in {type(self).__name__}')
+            self.raise_notimplemented = lambda x: Rounder._raise_notimplemented(x, msg = f'Number subclass {number_type.__name__} is not implemented in {type(self).__name__}')
         elif not issubclass(number_type, Number):
             raise TypeError(f'{number_type.__name__} is not a subclass of Number')
+        else:
+            self.raise_notimplemented = Rounder._raise_notimplemented
 
         self._number_type = number_type
         self._isinteger = self.isinteger_selector(number_type)
         if self._isinteger is None:
-            Rounder._raise_notimplemented(msg = f'Number subclass {number_type.__name__} has no defined method to decide when a number is an integer')
+            self._isinteger = lambda x: Rounder._raise_notimplemented(x, msg = f'Number subclass {number_type.__name__} has no defined method to decide when a number is an integer')
         self._roundingfuncs = [defaultdict(
-            lambda: Rounder._raise_notimplemented), defaultdict(lambda: Rounder._raise_notimplemented)]
+            lambda: self.raise_notimplemented), defaultdict(lambda: self.raise_notimplemented)]
 
         if issubclass(number_type, Real | Decimal):
             self._roundingfuncs[1] |= Rounder._real_to_integral
@@ -772,6 +774,14 @@ class Rounder():
     @isinteger.setter
     def isinteger(self, fn: Callable[[Number], bool]):
         self._isinteger = fn
+
+    @property
+    def raise_notimplemented(self):
+        return self._raise_notimplemented
+    
+    @raise_notimplemented.setter
+    def raise_notimplemented(self, fn: Callable):
+        self._raise_notimplemented = fn
 
     @staticmethod
     def isinteger_selector(t: type[Number]) -> Callable[[Number], bool] | None:

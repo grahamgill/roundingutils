@@ -670,9 +670,12 @@ class Rounder():
     "Map of `RoundingMode`s to functions from `Decimal` to `Decimal`." 
 
     def __init__(self, number_type: Number | type[Number], default_mode: RoundingMode = RoundingMode.ROUNDHALFEVEN):
+        # allow passing in a Number of the type you want as a convenience
         if not isinstance(number_type, type):
             number_type = type(number_type)
 
+        # set raise_notimplemented, for unimplemented combinations of types and rounding methods
+        # non-Number types raise a TypeError, but unsupported Number types just assign to raise_notimplemented
         if issubclass(number_type, Number) and not issubclass(number_type, Complex | Decimal):
             self.raise_notimplemented = lambda x: Rounder._raise_notimplemented(x, msg = f'Number subclass {number_type.__name__} is not implemented in {type(self).__name__}')
         elif not issubclass(number_type, Number):
@@ -680,10 +683,13 @@ class Rounder():
         else:
             self.raise_notimplemented = Rounder._raise_notimplemented
 
+        # number_type is intended to be read-only
         self._number_type = number_type
-        self._isinteger = self.isinteger_selector(number_type)
-        if self._isinteger is None:
-            self._isinteger = lambda x: Rounder._raise_notimplemented(x, msg = f'Number subclass {number_type.__name__} has no defined method to decide when a number is an integer')
+
+        # isinteger can be reassigned but starts with the _isinteger_selector provided function
+        self.isinteger = Rounder._isinteger_selector(number_type)
+
+        ## define roundingfuncs as a pair of default dictionaries with raise_notimplemented as default, and then add to them according to number_type
         self._roundingfuncs = [defaultdict(
             lambda: self.raise_notimplemented), defaultdict(lambda: self.raise_notimplemented)]
 
@@ -703,6 +709,9 @@ class Rounder():
                 self._to_number_type, Rounder._decimal_to_decimal)
 
         elif issubclass(number_type, Real):
+            # if number_type is an instance of ABCMeta then it has no concrete implementation, so we need to skip
+            # assigning a rounding method returning the same type and instead leave it as the default value of
+            # raise_notimplemented
             if not isinstance(number_type, abc.ABCMeta):
               self._roundingfuncs[0] |= _map_over_dict_vals(
                   self._to_number_type, Rounder._real_to_integral)
@@ -712,11 +721,53 @@ class Rounder():
                 lambda f: self._to_number_type(_apply_to_real_part(f)), Rounder._float_to_float)
 
         elif issubclass(number_type, Complex):
+            # see the comments for the Real case above, which apply here as well
             if not isinstance(number_type, abc.ABCMeta):
               self._roundingfuncs[0] |= _map_over_dict_vals(lambda f: self._to_number_type(
                   _apply_to_real_part(f)), Rounder._real_to_integral)
 
+        # records the default mode and finishes the definition of roundingfuncs
         self.default_mode = default_mode
+
+    ## settings and properties
+
+    @property
+    def number_type(self):
+        return self._number_type
+    
+    @property
+    def isinteger(self):
+        return self._isinteger
+    
+    @isinteger.setter
+    def isinteger(self, fn: Callable[[Number], bool] | None):
+        if fn is None:
+            self._isinteger = lambda x: self.raise_notimplemented(x, msg = f'Number subclass {self.number_type.__name__} has no defined method to decide when a number is an integer')
+        else:
+            self._isinteger = fn
+
+    @property
+    def roundingfuncs(self):
+        return self._roundingfuncs
+
+    def setroundingfuncs(self, d: Dict[RoundingMode, Callable[[Number], Number]], to_int: bool, default=NotImplemented):
+        if default is NotImplemented:
+            default = self.raise_notimplemented
+        self._roundingfuncs[to_int] = defaultdict(default, d)
+        self._roundingfuncs[to_int][None] = self._roundingfuncs[to_int][self.default_mode]
+        return self._roundingfuncs
+
+    @property
+    def default_mode(self):
+        return self._default_mode
+
+    @default_mode.setter
+    def default_mode(self, mode: RoundingMode):
+        self._default_mode = mode
+        self._roundingfuncs[0][None] = self._roundingfuncs[0][mode]
+        self._roundingfuncs[1][None] = self._roundingfuncs[1][mode]
+
+    ## operations
 
     def __call__(self, x: Number, mode: RoundingMode = None, to_int: bool = False) -> Number:
         return self._roundingfuncs[to_int][mode](x)
@@ -737,59 +788,20 @@ class Rounder():
         if unitsize == 0:
             return True
 
-        return self._isinteger(x / unitsize)
+        return self.isinteger(x / unitsize)
+    
+    ## internal helpers
 
     def _to_number_type(self, f: Callable[[Number], Number]) -> Callable[[Number], Number]:
         return lambda x: self._number_type(f(x))
 
-    @property
-    def default_mode(self):
-        return self._default_mode
-
-    @default_mode.setter
-    def default_mode(self, mode: RoundingMode):
-        self._default_mode = mode
-        self._roundingfuncs[0][None] = self._roundingfuncs[0][mode]
-        self._roundingfuncs[1][None] = self._roundingfuncs[1][mode]
-
-    @property
-    def number_type(self):
-        return self._number_type
-
-    @property
-    def roundingfuncs(self):
-        return self._roundingfuncs
-
-    def setroundingfuncs(self, d: Dict[RoundingMode, Callable[[Number], Number]], to_int: bool, default=NotImplemented):
-        if default is NotImplemented:
-            default = lambda: Rounder._raise_notimplemented
-        self._roundingfuncs[to_int] = defaultdict(default, d)
-        self._roundingfuncs[to_int][None] = self._roundingfuncs[to_int][self.default_mode]
-        return self._roundingfuncs
-
-    @property
-    def isinteger(self):
-        return self._isinteger
-
-    @isinteger.setter
-    def isinteger(self, fn: Callable[[Number], bool]):
-        self._isinteger = fn
-
-    @property
-    def raise_notimplemented(self):
-        return self._raise_notimplemented
-    
-    @raise_notimplemented.setter
-    def raise_notimplemented(self, fn: Callable):
-        self._raise_notimplemented = fn
-
     @staticmethod
-    def isinteger_selector(t: type[Number]) -> Callable[[Number], bool] | None:
+    def _isinteger_selector(t: type[Number]) -> Callable[[Number], bool] | None:
         """Returns an "isinteger" type function for the `Number` subclass `t`. `t` is checked to be a subclass of
         the following classes, in order: `Integral`, `float`, `Decimal`, `Rational`, `Real`, `complex`, `Complex`; and
         a function is returned for the first class listed of which `t` is a subclass. Thus if `t` is a subclass of 
         e.g. `Real` like `$\mathbb Q(\sqrt 5)$` (where the rational coefficients are given by `Rational`s) and defines
-        its own "isinteger" type method, `Rounder.isinteger_selector(t)` will return the
+        its own "isinteger" type method, `Rounder._isinteger_selector(t)` will return the
         isinteger function for `Real` as it does not know about the isinteger method for the class of `t`.
         
         Returns `None` for a `Number` subclass which is not a subclass of `Decimal` or of `Complex`.

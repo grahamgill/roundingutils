@@ -670,6 +670,11 @@ class Rounder():
     "Map of `RoundingMode`s to functions from `Decimal` to `Decimal`." 
 
     def __init__(self, number_type: Number | type[Number], default_mode: RoundingMode = RoundingMode.ROUNDHALFEVEN):
+        """Initialise a `Rounder` instance with
+        * `number_type`: the type of numbers that the `Rounder` will work on; expects a `Number` subtype
+          * for convenience, instead of passing in a type an instance of a `Number` type can be passed which will be converted to its type
+        * `default_mode`: the default `RoundingMode` that the `Rounder` will apply when another `RoundingMode` is not explicitly supplied
+        """
         # allow passing in a Number of the type you want as a convenience
         if not isinstance(number_type, type):
             number_type = type(number_type)
@@ -677,7 +682,8 @@ class Rounder():
         # set raise_notimplemented, for unimplemented combinations of types and rounding methods
         # non-Number types raise a TypeError, but unsupported Number types just assign to raise_notimplemented
         if issubclass(number_type, Number) and not issubclass(number_type, Complex | Decimal):
-            self.raise_notimplemented = lambda x: Rounder._raise_notimplemented(x, msg = f'Number subclass {number_type.__name__} is not implemented in {type(self).__name__}')
+            not_impl_msg = f'Number subclass {number_type.__name__} is not implemented in {type(self).__name__}'
+            self.raise_notimplemented = lambda x, msg = not_impl_msg: Rounder._raise_notimplemented(x, msg = msg)
         elif not issubclass(number_type, Number):
             raise TypeError(f'{number_type.__name__} is not a subclass of Number')
         else:
@@ -693,6 +699,7 @@ class Rounder():
         self._roundingfuncs = [defaultdict(
             lambda: self.raise_notimplemented), defaultdict(lambda: self.raise_notimplemented)]
 
+        # functions rounding to integer
         if issubclass(number_type, Real | Decimal):
             self._roundingfuncs[1] |= Rounder._real_to_integral
 
@@ -700,6 +707,7 @@ class Rounder():
             self._roundingfuncs[1] |= _map_over_dict_vals(
                 _apply_to_real_part, Rounder._real_to_integral)
 
+        # functions rounding to integer member of number_type
         if issubclass(number_type, float):
             self._roundingfuncs[0] |= Rounder._float_to_float if number_type == float else _map_over_dict_vals(
                 self._to_number_type, Rounder._float_to_float)

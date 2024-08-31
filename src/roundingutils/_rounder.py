@@ -739,38 +739,79 @@ class Rounder():
 
     ## settings and properties
 
+    # raise_notimplemented
+    # no additional setup required
+
     @property
-    def number_type(self):
+    def number_type(self) -> type[Number]:
+        "Read-only property that contains the type with which the `Rounder` instance was created."
         return self._number_type
     
     @property
     def isinteger(self):
+        """
+        Property which holds the integrality checking function.
+
+            `isinteger(x)`
+
+        should return `true` when `x` represents an integer member of its type, and should return `false` otherwise.
+        """
         return self._isinteger
     
     @isinteger.setter
     def isinteger(self, fn: Callable[[Number], bool] | None):
+        """
+        `isinteger` must be assigned a function `Number -> bool` or else `None`.
+
+        If assigned `None` then there will be no integrality checking function for the `Rounder` instance, and instead `isinteger(x)`
+        will call `self.raise_notimplemented(x)` with a predefined message.
+        """
         if fn is None:
-            self._isinteger = lambda x: self.raise_notimplemented(x, msg = f'Number subclass {self.number_type.__name__} has no defined method to decide when a number is an integer')
+            self._isinteger = lambda x: self.raise_notimplemented(x, msg = f'Number subclass {self._number_type.__name__} has no defined method to decide when a number is an integer')
         else:
             self._isinteger = fn
 
     @property
     def roundingfuncs(self):
+        """
+        Property which holds the two rounding function dictionaries (as a list of length two).
+            `roundingfuncs[0]`
+        holds the rounding functions, indexed by `RoundingMode`, that round to integral elements of the `Rounder` instance type (`self.number_type`).
+            `roundingfuncs[1]`
+        holds the rounding functions, indexed by `RoundingMode`, that round to numbers which are `Integer`.
+
+        Numerically we should have `roundingfuncs[0][mode](x) == roundingfuncs[1][mode](x)`, the difference being only in the type returned.
+        """
         return self._roundingfuncs
 
     def setroundingfuncs(self, d: Dict[RoundingMode, Callable[[Number], Number]], to_int: bool, default=NotImplemented):
+        """
+        Sets `self.roundingfuncs[to_int]` to return the dictionary `d` wrapped in a `defaultdict` with default element generator provided by
+        `default`. Also sets `self.roundingfuncs[to_int][None]` to return the same value as `self.roundingfuncs[to_int][self.default_mode]` so that
+        the dictionary can be indexed by `None` in order to get the default `RoundingMode`.
+
+        If `default` is `NotImplemented` then the default generator for the `defaultdict` is set to be `lambda: self.raise_notimplemented`.
+
+        We don't use a setter for the property `roundingfuncs` since there are multiple input parameters required.
+        """
         if default is NotImplemented:
-            default = self.raise_notimplemented
+            default = lambda: self.raise_notimplemented
         self._roundingfuncs[to_int] = defaultdict(default, d)
-        self._roundingfuncs[to_int][None] = self._roundingfuncs[to_int][self.default_mode]
+        self._roundingfuncs[to_int][None] = self._roundingfuncs[to_int][self._default_mode]
         return self._roundingfuncs
 
     @property
     def default_mode(self):
+        "Property which records the default `RoundingMode` for the `Rounder` instance, which is used when no `RoundingMode` is supplied to an operation."
         return self._default_mode
 
     @default_mode.setter
     def default_mode(self, mode: RoundingMode):
+        """
+        `self.default_mode` must be set to a `RoundingMode`. Setting `self.default_mode` also updates
+        `self.roundingfuncs[b][None] = self.roundingfuncs[b][self.default_mode]` for `b = 0, 1`, so that indexing into the `roundingfuncs` dictionaries at
+        `None` gives the rounding function for the new default `RoundingMode`.
+        """
         self._default_mode = mode
         self._roundingfuncs[0][None] = self._roundingfuncs[0][mode]
         self._roundingfuncs[1][None] = self._roundingfuncs[1][mode]
@@ -778,6 +819,11 @@ class Rounder():
     ## operations
 
     def __call__(self, x: Number, mode: RoundingMode = None, to_int: bool = False) -> Number:
+        """Make `Rounder(t)` callable.
+        
+        * `x`: the element of type `t` to be rounded
+        * `mode`: the `RoundingMode` to use (defaults to `None`, which selects the default `RoundingMode`, `self.default_mode`)
+        * `to_int`: whether to round to an integer element of `t` (`False`, the default) or to an `Integral` number (`True`)"""
         return self._roundingfuncs[to_int][mode](x)
 
     def roundunits(self, x: Number, unitsize: Number, mode: RoundingMode = None, to_int: bool = False, free_type: bool = True) -> Number:
@@ -796,7 +842,7 @@ class Rounder():
         if unitsize == 0:
             return True
 
-        return self.isinteger(x / unitsize)
+        return self._isinteger(x / unitsize)
     
     ## internal helpers
 
@@ -805,10 +851,11 @@ class Rounder():
 
     @staticmethod
     def _isinteger_selector(t: type[Number]) -> Callable[[Number], bool] | None:
-        """Returns an "isinteger" type function for the `Number` subclass `t`. `t` is checked to be a subclass of
+        """
+        Returns an "isinteger" type function for the `Number` subclass `t`. `t` is checked to be a subclass of
         the following classes, in order: `Integral`, `float`, `Decimal`, `Rational`, `Real`, `complex`, `Complex`; and
         a function is returned for the first class listed of which `t` is a subclass. Thus if `t` is a subclass of 
-        e.g. `Real` like `$\mathbb Q(\sqrt 5)$` (where the rational coefficients are given by `Rational`s) and defines
+        e.g. `Real` like `$\\mathbb Q(\\sqrt 5)$` (where the rational coefficients are given by `Rational`s) and defines
         its own "isinteger" type method, `Rounder._isinteger_selector(t)` will return the
         isinteger function for `Real` as it does not know about the isinteger method for the class of `t`.
         

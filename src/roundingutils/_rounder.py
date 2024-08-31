@@ -818,7 +818,7 @@ class Rounder():
 
     ## operations
 
-    def __call__(self, x: Number, mode: RoundingMode = None, to_int: bool = False) -> Number:
+    def __call__(self, x: Number, mode: RoundingMode | None = None, to_int: bool = False) -> Number:
         """Make `Rounder(t)` callable.
         
         * `x`: the element of type `t` to be rounded
@@ -826,16 +826,54 @@ class Rounder():
         * `to_int`: whether to round to an integer element of `t` (`False`, the default) or to an `Integral` number (`True`)"""
         return self._roundingfuncs[to_int][mode](x)
 
-    def roundunits(self, x: Number, unitsize: Number, mode: RoundingMode = None, to_int: bool = False, free_type: bool = True) -> Number:
-        r = x if unitsize == 0 else self._roundingfuncs[to_int][mode](
+    def roundunits(self, x: Number, unitsize: Number, mode: RoundingMode | None = None, to_int: bool = False, free_type: bool = True) -> Number:
+        """
+        Rounds `x` to an integer multiple of `unitsize` using `RoundingMode` `mode`.
+
+        If `unitsize` is nonzero, then for the chosen rounding method `r` we calculate the intermediate value `y = r(x / unitsize) * unitsize` in order to round to an integer multiple of
+        `unitsize`.
+
+        If `unitsize` is zero, then we define the intermediate value `y = x`. This is because for every rounding method `r` that we use,
+        we have $\\lim_{u->0+} r(x / u) * u = x$. This is a property that any other rounding method should preserve.
+
+        Parameters `to_int` and `mode` are used to specify the rounding method `r = self.roundingfuncs[to_int][mode]`.
+
+        If `free_type` is `True` then the intermediate value `y` is returned. The type of `y` will depend on the types of `x` and `unitsize` as well as the choice of 
+        `to_int`. If `free_type` is `False`, then we return `type(unitsize)(y)` when `to_int` is `True`, and otherwise we return `self.number_type(y)`.
+        """
+        y = x if unitsize == 0 else self._roundingfuncs[to_int][mode](
             x / unitsize) * unitsize
 
-        return r if free_type else (type(unitsize) if to_int else self._number_type)(r)
+        return y if free_type else (type(unitsize) if to_int else self._number_type)(y)
 
-    def round(self, x: Number, ndigits: int = None, mode: RoundingMode = None) -> Number:
+    def round(self, x: Number, ndigits: int | None = None, mode: RoundingMode | None = None) -> Number:
+        """
+        Round a number `x` using `RoundingMode` `mode` to `ndigits` after the decimal place in a way that mimics Python's default `round` function.
+
+        When `ndigits` is `None`, Python `round(x) == round(x, None)` rounds to an `int` using the equivalent of `RoundingMode.ROUNDHALFEVEN`. In a `Rounder`
+        instance, `self.round(x)` returns an `Integral` value by applying the default rounding method, using the equivalent of `self.roundingfuncs[1][self.default_mode](x)`.
+        A rounding method other than the default can also be supplied via the `mode` parameter, unlike Python's `round`, but the return value will still be an `Integral` value.
+
+        When `ndigits` is an `int`, Python `round(x, ndigits)` returns a rounded value using round half even rounding, rounded to `ndigits` "decimal places",
+        i.e. rounded to the nearest multiple of `10**(-ndigits)`. When `ndigits > 0` the
+        meaning of rounding to `ndigits` decimal places is clear. When `ndigits <= 0` an integral value is returned. In both cases the returned value has type `type(x)`.
+
+        In a `Rounder` instance, when `ndigits` is an `int`, `x` is rounded to the nearest multiple of `10**(-ndigits)` using rounding method `mode`. The type of the rounded
+        value will be `self.number_type`. If `mode` is `None` the default rounding method `self.default_mode` is used.
+        """
         return self(x, mode, True) if ndigits is None else self.roundunits(x, self._number_type(10)**(-ndigits), mode, False, False)
 
-    def countunits(self, x: Number, unitsize: Number, mode: RoundingMode, to_int: bool = True) -> Number:
+    def countunits(self, x: Number, unitsize: Number, mode: RoundingMode | None = None, to_int: bool = True) -> Number:
+        """
+        Returns the nearest integer number of units of size `unitsize` contained in `x`, where "nearest" is determined by the rounding method
+        `r = self.roundingfuncs[to_int][mode]` and the nearest integer count of `unitsize` units is calculated as `r(x / unitsize)`.
+
+        If `mode` is `None` the default mode `self.default_mode` is used. If `to_int` is `True` then an `Integral` value count is returned. If `to_int` is
+        `False` then an integral count with type `self.number_type` is returned.
+
+        Note that, unlike with method `roundunits`, there is no sensible way to calculate `countunits` when `unitsize` is zero. Passing a zero `unitsize`
+        may result in a `ZeroDivisionError` or `OverflowError` being thrown. See the discussion on rounding `NaN` and infinite values in the `Rounder` docstring.
+        """
         return self._roundingfuncs[to_int][mode](x / unitsize)
 
     def isunitsized(self, x: Number, unitsize: Number) -> bool:
